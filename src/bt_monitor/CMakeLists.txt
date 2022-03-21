@@ -27,9 +27,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 
 add_executable(tree_listener src/tree_listener.cpp)
 
-target_include_directories(tree_listener PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>)
+ament_target_dependencies(tree_listener rclcpp)
 
 install(TARGETS
   tree_listener
