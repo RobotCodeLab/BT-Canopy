@@ -27,6 +27,7 @@ class TreeListener : public rclcpp::Node
     }
 
     rclcpp::Subscription<bt_monitor::msg::BehaviorTreeLog>::SharedPtr subscription_;
+};
 
 int main(int argc, char ** argv)
 {
