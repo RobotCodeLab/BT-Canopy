@@ -21,11 +21,15 @@ find_package(builtin_interfaces REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
-rosidl_generate_interfaces(${PROJECT_NAME}
+set(msg_files
   "msg/BehaviorTreeLog.msg"
   "msg/BehaviorTreeStatusChange.msg"
-  DEPENDENCIES builtin_interfaces
 )
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  ${msg_files}
+)
+
 ament_export_dependencies(rosidl_default_runtime)
 
 add_executable(tree_listener src/tree_listener.cpp)

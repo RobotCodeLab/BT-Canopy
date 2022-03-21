@@ -17,10 +17,13 @@ class TreeListener : public rclcpp::Node
     {
       // std::cout << "Received message: " << msg-> << std::endl;
 
-      auto changed_nodes = msg->event_log;
-      for (auto node : changed_nodes)
+      auto events = msg.get()->event_log;
+
+      // RCLCPP_INFO(this->get_logger(), "Received message: %s", msg->event_log);
+
+      for (auto event : events)
       {
-        std::cout << "Node: " << node.node_name << " " << node.current_status << std::endl;
+        std::cout << event.node_name << " " << event.current_status << std::endl;
       }
 
     }
@@ -35,6 +38,4 @@ int main(int argc, char ** argv)
   rclcpp::shutdown();
   return 0;
 
-  printf("hello world bt_monitor package\n");
-  return 0;
 }
