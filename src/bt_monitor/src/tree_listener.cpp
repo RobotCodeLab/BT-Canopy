@@ -16,7 +16,14 @@ class TreeListener : public rclcpp::Node
   private:
     void callback(const bt_monitor::msg::BehaviorTreeLog::SharedPtr msg)
     {
-      std::cout << "Received message: " << msg->data << std::endl;
+      // std::cout << "Received message: " << msg-> << std::endl;
+
+      auto changed_nodes = msg->event_log;
+      for (auto node : changed_nodes)
+      {
+        std::cout << "Node: " << node.node_name << " " << node.current_status << std::endl;
+      }
+
     }
 
     rclcpp::Subscription<bt_monitor::msg::BehaviorTreeLog>::SharedPtr subscription_;
