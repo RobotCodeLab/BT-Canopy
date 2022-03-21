@@ -9,4 +9,6 @@ RUN . /opt/ros/$ROS_DISTRO/setup.sh &&\
     rosdep install --from-paths src --ignore-src &&\
     colcon build --symlink-install
 
+RUN apt-get update && apt-get install -y vim
+
 RUN echo 'source ~/BTWatcher/install/setup.bash' >> ~/.bashrc
