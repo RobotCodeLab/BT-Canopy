@@ -17,12 +17,14 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(rosidl_default_generators REQUIRED)
+find_package(builtin_interfaces REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/BehaviorTreeLog.msg"
   "msg/BehaviorTreeStatusChange.msg"
+  DEPENDENCIES builtin_interfaces
 )
 
 add_executable(tree_listener src/tree_listener.cpp)

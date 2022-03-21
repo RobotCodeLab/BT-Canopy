@@ -1,7 +1,7 @@
 #include <cstdio>
 #include "rclcpp/rclcpp.hpp"
 
-#include "bt_monitor/msg/behavior_tree_log.hpp"
+// #include "bt_monitor/msg/behavior_tree_log.hpp"
 
 class TreeListener : public rclcpp::Node
 {
