@@ -1,4 +1,5 @@
-FROM turtlebot-galactic
+# From here: https://github.com/hodgespodge/ros-robot-docker-images/tree/main/turtlebot-galactic
+FROM turtlebot-galactic 
 WORKDIR /root
 
 RUN git clone https://github.com/hodgespodge/BTWatcher.git

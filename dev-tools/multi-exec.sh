@@ -2,6 +2,13 @@
 
 container_name="btwatcher-container"
 
+# check if docker container is running using docker ps
+if [ $(docker ps | grep $container_name | wc -l) -eq 0 ]; then
+    echo "Container $container_name is not yet running"
+    kill -INT $$
+fi
+
+
 # set num_tabs to the user's choice (default is 1)
 num_tabs=${1:-1}
 
