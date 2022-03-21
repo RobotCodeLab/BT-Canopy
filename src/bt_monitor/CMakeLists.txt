@@ -26,20 +26,18 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/BehaviorTreeStatusChange.msg"
   DEPENDENCIES builtin_interfaces
 )
-
-rosidl_target_interfaces(tree_listener
-  ${PROJECT_NAME} "rosidl_typesupport_cpp"
-)
-
 ament_export_dependencies(rosidl_default_runtime)
 
 add_executable(tree_listener src/tree_listener.cpp)
-
 ament_target_dependencies(tree_listener rclcpp)
 
 install(TARGETS
   tree_listener
   DESTINATION lib/${PROJECT_NAME})
+
+rosidl_target_interfaces(tree_listener
+  ${PROJECT_NAME} "rosidl_typesupport_cpp"
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
