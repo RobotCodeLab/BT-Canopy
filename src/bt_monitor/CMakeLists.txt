@@ -21,6 +21,19 @@ find_package(builtin_interfaces REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
+find_package(ZMQ)
+
+if( ZMQ_FOUND )
+  message(STATUS "ZeroMQ found.")
+  add_definitions( -DZMQ_FOUND )
+
+  set(APP_CPPS ${APP_CPPS} ./bt_editor/sidepanel_monitor.cpp )
+  set(FORMS_UI ${FORMS_UI} ./bt_editor/sidepanel_monitor.ui )
+
+else()
+  message(WARNING "ZeroMQ NOT found. Real-time monitoring disabled.")
+endif()
+
 set(msg_files
   "msg/BehaviorTreeLog.msg"
   "msg/BehaviorTreeStatusChange.msg"
