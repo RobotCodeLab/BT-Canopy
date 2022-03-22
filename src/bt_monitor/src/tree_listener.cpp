@@ -1,6 +1,6 @@
 #include <cstdio>
 #include "rclcpp/rclcpp.hpp"
-#include "bt_monitor/msg/behavior_tree_log.hpp"
+#include "tree_msgs/msg/behavior_tree_log.hpp"
 
 class TreeListener : public rclcpp::Node
 {
@@ -8,12 +8,12 @@ class TreeListener : public rclcpp::Node
     TreeListener() : Node("tree_listener")
     {
       // call callback function when a message is received
-      subscription_ = this->create_subscription<bt_monitor::msg::BehaviorTreeLog>(
+      subscription_ = this->create_subscription<tree_msgs::msg::BehaviorTreeLog>(
         "behavior_tree_log", 10, std::bind(&TreeListener::callback, this, std::placeholders::_1));
     }
 
   private:
-    void callback(const bt_monitor::msg::BehaviorTreeLog::SharedPtr msg)
+    void callback(const tree_msgs::msg::BehaviorTreeLog::SharedPtr msg)
     {
       // std::cout << "Received message: " << msg-> << std::endl;
 
@@ -28,7 +28,7 @@ class TreeListener : public rclcpp::Node
 
     }
 
-    rclcpp::Subscription<bt_monitor::msg::BehaviorTreeLog>::SharedPtr subscription_;
+    rclcpp::Subscription<tree_msgs::msg::BehaviorTreeLog>::SharedPtr subscription_;
 };
 
 int main(int argc, char ** argv)

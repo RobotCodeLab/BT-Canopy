@@ -17,9 +17,12 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(builtin_interfaces REQUIRED)
+# find_package(builtin_interfaces REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(rosidl_default_generators REQUIRED)
+# find_package(rosidl_default_generators REQUIRED)
+find_package(tree_msgs REQUIRED)
+
+
 
 find_package(ZMQ)
 
@@ -34,28 +37,28 @@ else()
   message(WARNING "ZeroMQ NOT found. Real-time monitoring disabled.")
 endif()
 
-set(msg_files
-  "msg/BehaviorTreeLog.msg"
-  "msg/BehaviorTreeStatusChange.msg"
-)
+# set(msg_files
+#   "msg/BehaviorTreeLog.msg"
+#   "msg/BehaviorTreeStatusChange.msg"
+# )
 
-rosidl_generate_interfaces(${PROJECT_NAME}
-  ${msg_files}
-  DEPENDENCIES builtin_interfaces
-)
+# rosidl_generate_interfaces(${PROJECT_NAME}
+#   ${msg_files}
+#   DEPENDENCIES builtin_interfaces
+# )
 
 ament_export_dependencies(rosidl_default_runtime)
 
 add_executable(tree_listener src/tree_listener.cpp)
-ament_target_dependencies(tree_listener rclcpp)
+ament_target_dependencies(tree_listener rclcpp tree_msgs)
 
 install(TARGETS
   tree_listener
   DESTINATION lib/${PROJECT_NAME})
 
-rosidl_target_interfaces(tree_listener
-  ${PROJECT_NAME} "rosidl_typesupport_cpp"
-)
+# rosidl_target_interfaces(tree_listener
+#   ${PROJECT_NAME} "rosidl_typesupport_cpp"
+# )
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
