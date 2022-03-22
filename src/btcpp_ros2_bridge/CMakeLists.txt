@@ -51,16 +51,16 @@ endif()
 
 ament_export_dependencies(rosidl_default_runtime)
 
-add_executable(tree_listener src/tree_listener.cpp)
-ament_target_dependencies(tree_listener rclcpp tree_msgs)
+add_executable(zmq_to_ros_republisher src/zmq_to_ros_republisher.cpp)
+ament_target_dependencies(zmq_to_ros_republisher rclcpp tree_msgs)
 
 
 
 install(TARGETS
-  tree_listener
+  zmq_to_ros_republisher
   DESTINATION lib/${PROJECT_NAME})
 
-# rosidl_target_interfaces(tree_listener
+# rosidl_target_interfaces(zmq_to_ros_republisher
 #   ${PROJECT_NAME} "rosidl_typesupport_cpp"
 # )
 

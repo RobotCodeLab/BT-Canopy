@@ -7,7 +7,7 @@
 class TreeListener : public rclcpp::Node
 {
   public:
-    TreeListener() : Node("tree_listener")
+    TreeListener() : Node("zmq_to_ros_republisher")
     {
       // call callback function when a message is received
       subscription_ = this->create_subscription<tree_msgs::msg::BehaviorTreeLog>(
