@@ -11,6 +11,8 @@ if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 14)
 endif()
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}  "${CMAKE_CURRENT_LIST_DIR}/cmake")
+
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
@@ -51,6 +53,8 @@ ament_export_dependencies(rosidl_default_runtime)
 
 add_executable(tree_listener src/tree_listener.cpp)
 ament_target_dependencies(tree_listener rclcpp tree_msgs)
+
+
 
 install(TARGETS
   tree_listener
