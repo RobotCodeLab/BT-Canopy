@@ -2,6 +2,8 @@
 #include "rclcpp/rclcpp.hpp"
 #include "tree_msgs/msg/behavior_tree_log.hpp"
 
+#include <zmq.hpp>
+
 class TreeListener : public rclcpp::Node
 {
   public:

@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>bt_monitor</name>
+  <name>btcpp_ros2_bridge</name>
   <version>0.0.0</version>
-  <description>Minimal ros2 msg based behavior tree monitor</description>
+  <description>Republishes behaviortree cpp ZMQ data to ROS2</description>
   <maintainer email="samuelhodges3000@gmail.com">samuel</maintainer>
   <license>MIT license</license>
 
