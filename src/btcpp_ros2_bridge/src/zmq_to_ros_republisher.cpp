@@ -9,11 +9,28 @@
 class zmq_to_ros_republisher : public rclcpp::Node
 {
   public:
-
-
     
+    zmq::context_t zmq_context;
+    zmq::socket_t zmq_socket;
+
+    std::string pubPort = "1666";
+    std::string reqPort = "1667";
+
+    std::string serverIP = "localhost";
+    std::string connection_address_pub = "tcp://" + serverIP + ":" + pubPort;
+    std::string connection_address_req = "tcp://" + serverIP + ":" + reqPort;
+
     zmq_to_ros_republisher() : Node("zmq_to_ros_republisher")
     {
+
+      zmq_context = zmq::context_t(1);
+      zmq_socket = zmq::socket_t(zmq_context, ZMQ_SUB);
+
+      zmq_socket.connect(connection_address_req);
+      zmq_socket.setsockopt(ZMQ_SUBSCRIBE, "", 0);
+
+      auto timer = create_wall_timer(std::chrono::milliseconds(100), std::bind(&zmq_to_ros_republisher::timer_callback, this));
+
       publisher_ = this->create_publisher<tree_msgs::msg::BehaviorTreeLog>("/behavior_tree_log", 10);
       timer_ = this->create_wall_timer(
         std::chrono::milliseconds(100),
@@ -26,11 +43,6 @@ class zmq_to_ros_republisher : public rclcpp::Node
 
     void timer_callback()
     {
-      zmq::context_t context(1);
-      // zmq::socket_t socket(context, ZMQ_SUB);
-      // socket.connect("tcp://localhost:5555");
-      // socket.setsockopt(ZMQ_SUBSCRIBE, "", 0);
-
 
       //print current time
       auto now = std::chrono::system_clock::now();
@@ -39,9 +51,15 @@ class zmq_to_ros_republisher : public rclcpp::Node
       auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(value);
       std::cout << "Current time: " << millis.count() << std::endl;
 
-      // tree_msgs::msg::BehaviorTreeLog msg;
-      // msg.timestamp = std::chrono::system_clock::now();
-      // msg.event_log.push_back(tree_msgs::msg::BehaviorTreeStatusChange());
+      // receive a zmq message
+      zmq::message_t message;
+      zmq_socket.recv(&message);
+      
+      // print the message
+      std::string message_str(static_cast<char*>(message.data()), message.size());
+      std::cout << "Received message: " << message_str << std::endl;
+
+
     }
     
     rclcpp::TimerBase::SharedPtr timer_;
