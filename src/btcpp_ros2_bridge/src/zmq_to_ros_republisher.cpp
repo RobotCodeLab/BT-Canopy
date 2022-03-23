@@ -26,8 +26,15 @@ class zmq_to_ros_republisher : public rclcpp::Node
       zmq_context = zmq::context_t(1);
       zmq_socket = zmq::socket_t(zmq_context, ZMQ_SUB);
 
+      std::cout << "Connecting to " << connection_address_req << std::endl;
+
       zmq_socket.connect(connection_address_req);
+
+      std::cout << "Connected to " << connection_address_req << std::endl;
+
       zmq_socket.setsockopt(ZMQ_SUBSCRIBE, "", 0);
+
+      std::cout << "Ran setsocketopt" << std::endl;
 
       auto timer = create_wall_timer(std::chrono::milliseconds(100), std::bind(&zmq_to_ros_republisher::timer_callback, this));
 
@@ -53,7 +60,12 @@ class zmq_to_ros_republisher : public rclcpp::Node
 
       // receive a zmq message
       zmq::message_t message;
+
+      std::cout << "Receiving message" << std::endl;
+
       zmq_socket.recv(&message);
+
+      std::cout << "Received message" << std::endl;
       
       // print the message
       std::string message_str(static_cast<char*>(message.data()), message.size());
