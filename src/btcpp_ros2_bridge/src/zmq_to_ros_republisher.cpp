@@ -1,10 +1,13 @@
 #include <cstdio>
 #include "rclcpp/rclcpp.hpp"
 #include "tree_msgs/msg/behavior_tree_log.hpp"
+#include "deserializer.h"
 
 #include <chrono>
 
 #include <zmq.hpp>
+
+// using namespace BT;
 
 class zmq_to_ros_republisher : public rclcpp::Node
 {
@@ -13,7 +16,6 @@ class zmq_to_ros_republisher : public rclcpp::Node
     bool connected = false;
 
     zmq::context_t zmq_context;
-    // zmq::socket_t zmq_socket;
     zmq::socket_t  zmq_subscriber;
 
     std::string pubPort = "1666";
@@ -67,6 +69,35 @@ class zmq_to_ros_republisher : public rclcpp::Node
 
     }
 
+    // bool getTreeFromServer()
+    // {
+    //   try{
+    //     zmq::message_t request(0);
+    //     zmq::message_t reply;
+
+    //     zmq::socket_t zmq_client(zmq_context, ZMQ_REQ);
+    //     zmq_client.connect(connection_address_req);
+
+    //     int timeout_ms = 1000;
+    //     zmq_client.setsockopt(ZMQ_RCVTIMEO,&timeout_ms, sizeof(int) );
+
+    //     zmq_client.send(request);
+
+    //     bool received = zmq_client.recv(&reply);
+    //     if (! received)
+    //     {
+    //       std::cout << "Error receiving from server" << std::endl;
+    //       return false;
+    //     }
+
+    //     for (const auto& tree_node: _loaded_tree.nodes())
+    //     {
+    //       std::cout << tree_node.name() << std::endl;
+    //     }
+
+    //   }
+    // }
+
 
   private:
 
@@ -87,10 +118,41 @@ class zmq_to_ros_republisher : public rclcpp::Node
         try{
           while(zmq_subscriber.recv(&message))
           {
-            std::string msg(static_cast<char*>(message.data()), message.size());
-            std::cout << "Received: " << msg << std::endl;
             
+            const char* buffer = reinterpret_cast<const char*>(message.data());
+
+            const uint32_t header_size = flatbuffers::ReadScalar<uint32_t>(buffer);
+            const uint32_t num_transitions = flatbuffers::ReadScalar<uint32_t>(&buffer[4+header_size]);
+
+            std::vector<std::pair<int, BT::NodeStatus>> node_status;
+
+            
+            for(size_t t=0; t < num_transitions; t++)
+            {
+                size_t offset = 8 + header_size + 12*t;
+
+                // const double t_sec  = flatbuffers::ReadScalar<uint32_t>( &buffer[offset] );
+                // const double t_usec = flatbuffers::ReadScalar<uint32_t>( &buffer[offset+4] );
+                // double timestamp = t_sec + t_usec* 0.000001;
+                const uint16_t uid = flatbuffers::ReadScalar<uint16_t>(&buffer[offset+8]);
+                // const uint16_t index = _uid_to_index.at(uid);
+                const uint16_t index = 10;
+                BT::NodeStatus prev_status = convert(flatbuffers::ReadScalar<Serialization::NodeStatus>(&buffer[index+10] ));
+                BT::NodeStatus status  = convert(flatbuffers::ReadScalar<Serialization::NodeStatus>(&buffer[offset+11] ));
+
+                // _loaded_tree.node(index)->status = status;
+                node_status.push_back( {index, status} );
+
+            }
+
+          // print node status
+          for(const auto& status: node_status)
+          {
+            std::cout << "Node " << status.first << ": " << status.second << std::endl;
           }
+                    
+          }
+          
         }
         catch( zmq::error_t& err)
         {
