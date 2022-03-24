@@ -21,6 +21,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(tree_msgs REQUIRED)
+find_package(behaviortree_cpp_v3 REQUIRED)
 
 find_package(ZMQ)
 
@@ -28,7 +29,7 @@ ament_export_dependencies(rosidl_default_runtime)
 
 
 add_executable(zmq_to_ros_republisher src/zmq_to_ros_republisher.cpp)
-ament_target_dependencies(zmq_to_ros_republisher rclcpp tree_msgs ZMQ)
+ament_target_dependencies(zmq_to_ros_republisher rclcpp tree_msgs behaviortree_cpp_v3 ZMQ)
 
 install(TARGETS
   zmq_to_ros_republisher
