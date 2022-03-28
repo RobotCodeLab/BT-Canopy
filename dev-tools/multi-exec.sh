@@ -1,6 +1,6 @@
 #!/bin/sh
 
-container_name="btwatcher-container"
+container_name="btcanvas-container"
 
 # check if docker container is running using docker ps
 if [ $(docker ps | grep $container_name | wc -l) -eq 0 ]; then

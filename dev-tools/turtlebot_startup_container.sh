@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "THIS SCRIPT DOESN'T WORK YET"
+exit 1
+
 IMAGE_NAME="btcanvas"
 CONTAINER_NAME="btcanvas-container" # must be lowercase
 
