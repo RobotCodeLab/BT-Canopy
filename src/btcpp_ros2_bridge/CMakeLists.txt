@@ -27,13 +27,28 @@ find_package(ZMQ)
 
 ament_export_dependencies(rosidl_default_runtime)
 
+include_directories(
+  include
+)
 
-add_executable(zmq_to_ros_republisher src/zmq_to_ros_republisher.cpp)
-ament_target_dependencies(zmq_to_ros_republisher rclcpp tree_msgs behaviortree_cpp_v3 ZMQ)
+add_executable(zmq_to_ros_republisher  src/zmq_to_ros_republisher.cpp)
+
+ament_target_dependencies(
+  zmq_to_ros_republisher 
+  rclcpp 
+  tree_msgs 
+  behaviortree_cpp_v3 
+  ZMQ
+  )
 
 install(TARGETS
   zmq_to_ros_republisher
   DESTINATION lib/${PROJECT_NAME})
+
+ament_export_include_directories(
+  include
+)
+  
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

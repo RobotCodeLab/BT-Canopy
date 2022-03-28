@@ -1,7 +1,7 @@
 #include <cstdio>
 #include "rclcpp/rclcpp.hpp"
 #include "tree_msgs/msg/behavior_tree_log.hpp"
-#include "deserializer.h"
+#include "btcpp_ros2_bridge/deserializer.hpp"
 
 #include <chrono>
 
@@ -14,6 +14,9 @@ class zmq_to_ros_republisher : public rclcpp::Node
   public:
     
     bool connected = false;
+    bool got_tree = false;
+
+    std::unordered_map<uint16_t, tree_node> uid_tree; // store the tree nodes in a map ordered by their uid
 
     zmq::context_t zmq_context;
     zmq::socket_t  zmq_subscriber;
@@ -42,6 +45,12 @@ class zmq_to_ros_republisher : public rclcpp::Node
 
     bool connect()
     {
+
+      if(!got_tree)
+      {
+        getTree();
+      }
+
       if(connected)
       {
         return true;
@@ -69,34 +78,6 @@ class zmq_to_ros_republisher : public rclcpp::Node
 
     }
 
-    // bool getTreeFromServer()
-    // {
-    //   try{
-    //     zmq::message_t request(0);
-    //     zmq::message_t reply;
-
-    //     zmq::socket_t zmq_client(zmq_context, ZMQ_REQ);
-    //     zmq_client.connect(connection_address_req);
-
-    //     int timeout_ms = 1000;
-    //     zmq_client.setsockopt(ZMQ_RCVTIMEO,&timeout_ms, sizeof(int) );
-
-    //     zmq_client.send(request);
-
-    //     bool received = zmq_client.recv(&reply);
-    //     if (! received)
-    //     {
-    //       std::cout << "Error receiving from server" << std::endl;
-    //       return false;
-    //     }
-
-    //     for (const auto& tree_node: _loaded_tree.nodes())
-    //     {
-    //       std::cout << tree_node.name() << std::endl;
-    //     }
-
-    //   }
-    // }
 
 
   private:
@@ -104,18 +85,12 @@ class zmq_to_ros_republisher : public rclcpp::Node
     void timer_callback()
     {
 
-      //print current time
-      auto now = std::chrono::system_clock::now();
-      auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
-      auto value = now_ms.time_since_epoch();
-      auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(value);
-      std::cout << "Current time: " << millis.count() << std::endl;
-
       if(connected)
       {
         zmq::message_t message;
 
-        try{
+        try
+        {
           while(zmq_subscriber.recv(&message))
           {
             
@@ -124,7 +99,12 @@ class zmq_to_ros_republisher : public rclcpp::Node
             const uint32_t header_size = flatbuffers::ReadScalar<uint32_t>(buffer);
             const uint32_t num_transitions = flatbuffers::ReadScalar<uint32_t>(&buffer[4+header_size]);
 
-            std::vector<std::pair<int, BT::NodeStatus>> node_status;
+            std::cout << "Header size: " << header_size << std::endl;
+            std::cout << "Received " << num_transitions << " transitions" << std::endl;
+
+            std::vector<std::pair<uint16_t, BT::NodeStatus>> node_status;
+
+            std::vector<std::pair<uint16_t, BT::NodeStatus>> previous_node_status;
 
             
             for(size_t t=0; t < num_transitions; t++)
@@ -135,22 +115,43 @@ class zmq_to_ros_republisher : public rclcpp::Node
                 // const double t_usec = flatbuffers::ReadScalar<uint32_t>( &buffer[offset+4] );
                 // double timestamp = t_sec + t_usec* 0.000001;
                 const uint16_t uid = flatbuffers::ReadScalar<uint16_t>(&buffer[offset+8]);
-                // const uint16_t index = _uid_to_index.at(uid);
-                const uint16_t index = 10;
-                BT::NodeStatus prev_status = convert(flatbuffers::ReadScalar<Serialization::NodeStatus>(&buffer[index+10] ));
+
+                // std::cout << "Transition " << t << ": " << uid << std::endl;
+                
+                BT::NodeStatus prev_status = convert(flatbuffers::ReadScalar<Serialization::NodeStatus>(&buffer[offset+10] ));
                 BT::NodeStatus status  = convert(flatbuffers::ReadScalar<Serialization::NodeStatus>(&buffer[offset+11] ));
 
-                // _loaded_tree.node(index)->status = status;
-                node_status.push_back( {index, status} );
+
+                previous_node_status.push_back( {uid, prev_status});
+                node_status.push_back( {uid, status} );
 
             }
 
-          // print node status
-          for(const auto& status: node_status)
-          {
-            std::cout << "Node " << status.first << ": " << status.second << std::endl;
-          }
-                    
+            std::cout << "\n" << std::endl;
+            std::cout << "Current status: " << std::endl;
+
+            // print node status
+            for(const auto& status: node_status)
+            {
+
+              // TODO: Publish to ros here
+              // Need to double check that reported status matches up with status in Groot
+
+              tree_node node = uid_tree.at(status.first);
+              std::cout << "Node " << node.instance_name << ": " << status.second << std::endl;
+
+            }
+            // print previous node status
+
+            std::cout << "Previous node status: " << std::endl;
+
+            for(const auto& status: previous_node_status)
+            {
+
+              tree_node node = uid_tree.at(status.first);
+              std::cout << "Node " << node.instance_name << ": " << status.second << std::endl;     
+            }
+
           }
           
         }
@@ -164,8 +165,39 @@ class zmq_to_ros_republisher : public rclcpp::Node
       }
 
       // receive a zmq message
+    }
 
+    bool getTree()
+    {
+      try{
+        zmq::message_t request(0);
+        zmq::message_t reply;
 
+        zmq::socket_t zmq_client(zmq_context, ZMQ_REQ);
+        zmq_client.connect(connection_address_req); // address for signalling server to send tree info
+
+        int timeout_ms = 1000;
+        zmq_client.setsockopt(ZMQ_RCVTIMEO,&timeout_ms, sizeof(int) );
+        zmq_client.send(request);
+
+        bool got_reply = zmq_client.recv(&reply);
+        if(! got_reply)
+        {
+          std::cout << "No reply from server while getting tree" << std::endl;
+          return false;
+        }
+
+        const char* buffer = reinterpret_cast<const char*>(reply.data());
+        auto fb_behavior_tree = Serialization::GetBehaviorTree(buffer);
+
+        uid_tree = BuildTreeFromFlatbuffers(fb_behavior_tree);
+
+      }
+      catch(zmq::error_t e)
+      {
+        std::cout << "Error getting tree: " << e.what() << std::endl;
+        return false;
+      }
 
     }
     
