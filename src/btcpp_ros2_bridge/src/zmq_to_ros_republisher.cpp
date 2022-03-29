@@ -14,7 +14,7 @@ class zmq_to_ros_republisher : public rclcpp::Node
 {
   public:
     
-    bool connected = false;
+    bool connected_to_pub = false;
     bool got_tree = false;
 
     std::unordered_map<uint16_t, tree_node> uid_tree; // store the tree nodes in a map ordered by their uid
@@ -47,46 +47,44 @@ class zmq_to_ros_republisher : public rclcpp::Node
     bool connect()
     {
 
-      if(!got_tree)
+      if(!got_tree && !getTree())
       {
-        got_tree = getTree();
+        RCLCPP_WARN(this->get_logger(), "Could not get tree from server");
+        return false;
+      }
+      else{
+        RCLCPP_INFO(this->get_logger(), "Got tree from server");
+        got_tree = true;
       }
 
-      if(connected)
+      if(connected_to_pub)
       {
         return true;
       }
-
 
       try{
         
         int timeout_ms = 1;
         zmq_subscriber.setsockopt(ZMQ_SUBSCRIBE, "", 0);
         zmq_subscriber.setsockopt(ZMQ_RCVTIMEO,&timeout_ms, sizeof(int) );
-        
         zmq_subscriber.connect(connection_address_pub);
-
 
       }
       catch(zmq::error_t e)
       {
-        connected = false;
+        // connected_to_pub = false;
         std::cout << "Error connecting to publisher: " << e.what() << std::endl;
         return false;
       }
-
-      connected = true;
-
+      return true;
     }
-
-
 
   private:
 
     void timer_callback()
     {
 
-      if(connected)
+      if(connected_to_pub)
       {
         zmq::message_t message;
 
@@ -100,13 +98,6 @@ class zmq_to_ros_republisher : public rclcpp::Node
             const uint32_t header_size = flatbuffers::ReadScalar<uint32_t>(buffer);
             const uint32_t num_transitions = flatbuffers::ReadScalar<uint32_t>(&buffer[4+header_size]);
 
-            std::cout << "Header size: " << header_size << std::endl;
-            std::cout << "Received " << num_transitions << " transitions" << std::endl;
-
-            // std::vector<std::pair<uint16_t, BT::NodeStatus>> node_status;
-            // std::vector<std::pair<uint16_t, BT::NodeStatus>> previous_node_status;
-
-            
             if(!event_log.empty())
             {
               event_log.clear();
@@ -119,14 +110,11 @@ class zmq_to_ros_republisher : public rclcpp::Node
 
                 const double t_sec  = flatbuffers::ReadScalar<uint32_t>( &buffer[offset] );
                 const double t_usec = flatbuffers::ReadScalar<uint32_t>( &buffer[offset+4] );
-                // double timestamp = t_sec + t_usec* 0.000001;
 
                 tree_msgs::msg::BehaviorTreeStatusChange event;
 
                 const uint16_t uid = flatbuffers::ReadScalar<uint16_t>(&buffer[offset+8]);
 
-                // std::cout << "Transition " << t << ": " << uid << std::endl;
-                
                 BT::NodeStatus prev_status = convert(flatbuffers::ReadScalar<Serialization::NodeStatus>(&buffer[offset+10] ));
                 BT::NodeStatus status  = convert(flatbuffers::ReadScalar<Serialization::NodeStatus>(&buffer[offset+11] ));
 
@@ -139,8 +127,6 @@ class zmq_to_ros_republisher : public rclcpp::Node
 
                 event_log.push_back(event);
 
-                // previous_node_status.push_back( {uid, prev_status});
-                // node_status.push_back( {uid, status} );
 
             }
 
@@ -148,31 +134,6 @@ class zmq_to_ros_republisher : public rclcpp::Node
             log.timestamp = this->get_clock()->now();
 
             publisher_->publish(log);
-
-            // std::cout << "\n" << std::endl;
-            // std::cout << "Current status: " << std::endl;
-
-            // // print node status
-            // for(const auto& status: node_status)
-            // {
-
-            //   // TODO: Publish to ros here
-            //   // Need to double check that reported status matches up with status in Groot
-
-            //   tree_node node = uid_tree.at(status.first);
-            //   std::cout << "Node " << node.instance_name << ": " << status.second << std::endl;
-
-            // }
-            // // print previous node status
-
-            // std::cout << "Previous node status: " << std::endl;
-
-            // for(const auto& status: previous_node_status)
-            // {
-
-            //   tree_node node = uid_tree.at(status.first);
-            //   std::cout << "Node " << node.instance_name << ": " << status.second << std::endl;     
-            // }
 
           }
           
@@ -183,12 +144,12 @@ class zmq_to_ros_republisher : public rclcpp::Node
         }
 
       }else{
-        connect();
+        connected_to_pub = connect();
       }
 
-      // receive a zmq message
     }
 
+    // TODO: code can't exit until tree is received
     bool getTree()
     {
       try{
@@ -205,7 +166,6 @@ class zmq_to_ros_republisher : public rclcpp::Node
         bool got_reply = zmq_client.recv(&reply);
         if(! got_reply)
         {
-          std::cout << "No reply from server while getting tree" << std::endl;
           return false;
         }
 
@@ -217,7 +177,6 @@ class zmq_to_ros_republisher : public rclcpp::Node
       }
       catch(zmq::error_t e)
       {
-        std::cout << "Error getting tree: " << e.what() << std::endl;
         return false;
       }
 
