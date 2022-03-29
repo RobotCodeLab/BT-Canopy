@@ -22,13 +22,6 @@ class zmq_to_ros_republisher : public rclcpp::Node
     zmq::context_t zmq_context;
     zmq::socket_t  zmq_subscriber;
 
-    // std::string pubPort = "1666";
-    // std::string reqPort = "1667";
-
-    // std::string serverIP = "localhost";
-    // std::string connection_address_pub = "tcp://" + serverIP + ":" + pubPort;
-    // std::string connection_address_req = "tcp://" + serverIP + ":" + reqPort;
-
     zmq_to_ros_republisher() : Node("zmq_to_ros_republisher")
     {
 
