@@ -43,7 +43,13 @@ ament_target_dependencies(
 
 install(TARGETS
   zmq_to_ros_republisher
-  DESTINATION lib/${PROJECT_NAME})
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
+)
 
 ament_export_include_directories(
   include

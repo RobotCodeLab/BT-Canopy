@@ -22,15 +22,22 @@ class zmq_to_ros_republisher : public rclcpp::Node
     zmq::context_t zmq_context;
     zmq::socket_t  zmq_subscriber;
 
-    std::string pubPort = "1666";
-    std::string reqPort = "1667";
+    // std::string pubPort = "1666";
+    // std::string reqPort = "1667";
 
-    std::string serverIP = "localhost";
-    std::string connection_address_pub = "tcp://" + serverIP + ":" + pubPort;
-    std::string connection_address_req = "tcp://" + serverIP + ":" + reqPort;
+    // std::string serverIP = "localhost";
+    // std::string connection_address_pub = "tcp://" + serverIP + ":" + pubPort;
+    // std::string connection_address_req = "tcp://" + serverIP + ":" + reqPort;
 
     zmq_to_ros_republisher() : Node("zmq_to_ros_republisher")
     {
+
+      // TODO: Fix this
+      // ros2 param list
+      // > Exception while calling service of node '/zmq_to_ros_republisher': None
+      this->declare_parameter<std::string>("pub_port", "1666");
+      this->declare_parameter<std::string>("server_port", "1667");
+      this->declare_parameter<std::string>("server_ip", "localhost");
 
       zmq_context = zmq::context_t(1);
       zmq_subscriber = zmq::socket_t(zmq_context, ZMQ_SUB);
@@ -47,9 +54,16 @@ class zmq_to_ros_republisher : public rclcpp::Node
     bool connect()
     {
 
+      pubPort = this->get_parameter("pub_port").as_string();
+      reqPort = this->get_parameter("server_port").as_string();
+      serverIP = this->get_parameter("server_ip").as_string();
+
+      connection_address_pub = "tcp://" + serverIP + ":" + pubPort;
+      connection_address_req = "tcp://" + serverIP + ":" + reqPort;
+
       if(!got_tree && !getTree())
       {
-        RCLCPP_WARN(this->get_logger(), "Could not get tree from server");
+        RCLCPP_WARN(this->get_logger(), "Could not get tree from server %s:%s", serverIP.c_str(), reqPort.c_str());
         return false;
       }
       else{
@@ -127,7 +141,6 @@ class zmq_to_ros_republisher : public rclcpp::Node
 
                 event_log.push_back(event);
 
-
             }
 
             log.event_log = event_log;
@@ -191,6 +204,12 @@ class zmq_to_ros_republisher : public rclcpp::Node
     rclcpp::Clock::SharedPtr clock;
     tree_msgs::msg::BehaviorTreeLog log;
     std::vector<tree_msgs::msg::BehaviorTreeStatusChange> event_log;
+
+    std::string pubPort;
+    std::string reqPort;
+    std::string connection_address_pub;
+    std::string connection_address_req;
+    std::string serverIP;
 
 };
 
