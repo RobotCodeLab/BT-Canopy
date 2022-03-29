@@ -1,23 +1,19 @@
 #!/bin/bash
 
-echo "THIS SCRIPT DOESN'T WORK YET"
-exit 1
-
 IMAGE_NAME="btcanvas"
 CONTAINER_NAME="btcanvas-container" # must be lowercase
 
 ROS_VERSION="galactic"
 
-# SOURCE_ROS="source /opt/ros/$ROS_VERSION/setup.bash"
-# SOURCE_TURTLEBOT="source /root/turtlebot3_ws/install/setup.bash"
-SOURCE_BASHRC=". /root/.bashrc"
+SOURCE_ROS="source /opt/ros/$ROS_VERSION/setup.bash"
+SOURCE_TURTLEBOT="source /root/turtlebot3_ws/install/setup.bash"
+SOURCE_GAZEBO="source /usr/share/gazebo/setup.sh"
 
 
 function exec_command_in_new_tab() {
 
     echo "Executing command: $1"
 
-    # gnome-terminal --tab -- bash -c "docker exec -it $CONTAINER_NAME $1; bash"
     gnome-terminal --tab -- bash -c "docker exec $CONTAINER_NAME bash -c '$1'; bash"
 }
 
@@ -51,19 +47,27 @@ if [ $(docker ps | grep $CONTAINER_NAME | wc -l) -eq 0 ]; then
 
         gnome-terminal --tab -- rocker --x11 --nvidia --name $CONTAINER_NAME $IMAGE_NAME
     fi
+
+    # loop until container with name $CONTAINER_NAME is running
+    while [ $(docker ps | grep $CONTAINER_NAME | wc -l) -eq 0 ]; do
+        echo "Waiting for container $CONTAINER_NAME to start"
+        sleep 1
+    done
+
+    sleep 1
 fi
 
 echo "Executing commands in container $CONTAINER_NAME"
 
-exec_command_in_new_tab "$SOURCE_BASHRC && ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py"
+exec_command_in_new_tab "$SOURCE_ROS && $SOURCE_TURTLEBOT && $SOURCE_GAZEBO && ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py"
 
 sleep 10
 
-exec_command_in_new_tab "$SOURCE_BASHRC && ros2 launch slam_toolbox online_async_launch.py use_sim_time:=True"
+exec_command_in_new_tab "$SOURCE_ROS && ros2 launch slam_toolbox online_async_launch.py use_sim_time:=True"
 
 sleep 10
 
-exec_command_in_new_tab "$SOURCE_BASHRC && ros2 launch turtlebot3_navigation2 navigation2.launch.py use_sim_time:=True"
+exec_command_in_new_tab "$SOURCE_ROS && $SOURCE_TURTLEBOT && ros2 launch turtlebot3_navigation2 navigation2.launch.py use_sim_time:=True"
 
 sleep 2
 
