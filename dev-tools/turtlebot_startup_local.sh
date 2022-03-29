@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# This script should be run from the directory where turtlebot package is located on the host computer. Not the dev-tools directory.
+
 source install/setup.bash
 
 export TURTLEBOT3_MODEL=burger
