@@ -2,6 +2,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "tree_msgs/msg/behavior_tree_log.hpp"
 #include "btcpp_ros2_bridge/deserializer.hpp"
+#include "builtin_interfaces/msg/time.hpp"
 
 #include <chrono>
 
@@ -48,7 +49,7 @@ class zmq_to_ros_republisher : public rclcpp::Node
 
       if(!got_tree)
       {
-        getTree();
+        got_tree = getTree();
       }
 
       if(connected)
@@ -102,18 +103,26 @@ class zmq_to_ros_republisher : public rclcpp::Node
             std::cout << "Header size: " << header_size << std::endl;
             std::cout << "Received " << num_transitions << " transitions" << std::endl;
 
-            std::vector<std::pair<uint16_t, BT::NodeStatus>> node_status;
-
-            std::vector<std::pair<uint16_t, BT::NodeStatus>> previous_node_status;
+            // std::vector<std::pair<uint16_t, BT::NodeStatus>> node_status;
+            // std::vector<std::pair<uint16_t, BT::NodeStatus>> previous_node_status;
 
             
+            if(!event_log.empty())
+            {
+              event_log.clear();
+            }
+      
+
             for(size_t t=0; t < num_transitions; t++)
             {
                 size_t offset = 8 + header_size + 12*t;
 
-                // const double t_sec  = flatbuffers::ReadScalar<uint32_t>( &buffer[offset] );
-                // const double t_usec = flatbuffers::ReadScalar<uint32_t>( &buffer[offset+4] );
+                const double t_sec  = flatbuffers::ReadScalar<uint32_t>( &buffer[offset] );
+                const double t_usec = flatbuffers::ReadScalar<uint32_t>( &buffer[offset+4] );
                 // double timestamp = t_sec + t_usec* 0.000001;
+
+                tree_msgs::msg::BehaviorTreeStatusChange event;
+
                 const uint16_t uid = flatbuffers::ReadScalar<uint16_t>(&buffer[offset+8]);
 
                 // std::cout << "Transition " << t << ": " << uid << std::endl;
@@ -122,35 +131,48 @@ class zmq_to_ros_republisher : public rclcpp::Node
                 BT::NodeStatus status  = convert(flatbuffers::ReadScalar<Serialization::NodeStatus>(&buffer[offset+11] ));
 
 
-                previous_node_status.push_back( {uid, prev_status});
-                node_status.push_back( {uid, status} );
+                event.node_name = uid_tree.at(uid).instance_name;
+                event.previous_status = toStr(prev_status);
+                event.current_status = toStr(status);
+                event.timestamp.sec = t_sec;
+                event.timestamp.nanosec = t_usec*1000;
+
+                event_log.push_back(event);
+
+                // previous_node_status.push_back( {uid, prev_status});
+                // node_status.push_back( {uid, status} );
 
             }
 
-            std::cout << "\n" << std::endl;
-            std::cout << "Current status: " << std::endl;
+            log.event_log = event_log;
+            log.timestamp = this->get_clock()->now();
 
-            // print node status
-            for(const auto& status: node_status)
-            {
+            publisher_->publish(log);
 
-              // TODO: Publish to ros here
-              // Need to double check that reported status matches up with status in Groot
+            // std::cout << "\n" << std::endl;
+            // std::cout << "Current status: " << std::endl;
 
-              tree_node node = uid_tree.at(status.first);
-              std::cout << "Node " << node.instance_name << ": " << status.second << std::endl;
+            // // print node status
+            // for(const auto& status: node_status)
+            // {
 
-            }
-            // print previous node status
+            //   // TODO: Publish to ros here
+            //   // Need to double check that reported status matches up with status in Groot
 
-            std::cout << "Previous node status: " << std::endl;
+            //   tree_node node = uid_tree.at(status.first);
+            //   std::cout << "Node " << node.instance_name << ": " << status.second << std::endl;
 
-            for(const auto& status: previous_node_status)
-            {
+            // }
+            // // print previous node status
 
-              tree_node node = uid_tree.at(status.first);
-              std::cout << "Node " << node.instance_name << ": " << status.second << std::endl;     
-            }
+            // std::cout << "Previous node status: " << std::endl;
+
+            // for(const auto& status: previous_node_status)
+            // {
+
+            //   tree_node node = uid_tree.at(status.first);
+            //   std::cout << "Node " << node.instance_name << ": " << status.second << std::endl;     
+            // }
 
           }
           
@@ -199,12 +221,18 @@ class zmq_to_ros_republisher : public rclcpp::Node
         return false;
       }
 
+      return true;
+
     }
     
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Publisher<tree_msgs::msg::BehaviorTreeLog>::SharedPtr publisher_;
 
-    
+  protected:
+    rclcpp::Clock::SharedPtr clock;
+    tree_msgs::msg::BehaviorTreeLog log;
+    std::vector<tree_msgs::msg::BehaviorTreeStatusChange> event_log;
+
 };
 
 int main(int argc, char ** argv)
