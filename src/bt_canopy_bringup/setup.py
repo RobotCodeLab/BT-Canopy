@@ -11,6 +11,7 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name, ['launch/monitor.launch.py']),
+        ('share/' + package_name, ['launch/monitor_with_bridge.launch.py']),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -21,6 +22,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'coverage_monitor = bt_canopy_bringup.coverage_monitor:main',
         ],
     },
 )

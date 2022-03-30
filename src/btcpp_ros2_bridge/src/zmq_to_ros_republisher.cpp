@@ -25,9 +25,6 @@ class zmq_to_ros_republisher : public rclcpp::Node
     zmq_to_ros_republisher() : Node("zmq_to_ros_republisher")
     {
 
-      // TODO: Fix this
-      // ros2 param list
-      // > Exception while calling service of node '/zmq_to_ros_republisher': None
       this->declare_parameter<std::string>("pub_port", "1666");
       this->declare_parameter<std::string>("server_port", "1667");
       this->declare_parameter<std::string>("server_ip", "localhost");
