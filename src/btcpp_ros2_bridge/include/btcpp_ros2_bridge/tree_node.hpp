@@ -4,7 +4,6 @@
 #include <behaviortree_cpp_v3/flatbuffers/BT_logger_generated.h>
 #include <behaviortree_cpp_v3/flatbuffers/bt_flatbuffer_helper.h>
 
-
 struct tree_node {
 
     std::string instance_name;
@@ -12,6 +11,7 @@ struct tree_node {
     uint16_t uid;
 
     BT::NodeStatus status;
+    BT::NodeType type;
 
     // std::vector<flatbuffers::Offset<Serialization::PortConfig>> port_remaps;
 

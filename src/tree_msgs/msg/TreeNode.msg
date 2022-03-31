@@ -1,4 +1,5 @@
-uint16_t uid
+uint16 uid
 string instance_name
-string registration_ID
-uint16_t[] child_uids
+string registration_id
+string type
+uint16[] child_uids

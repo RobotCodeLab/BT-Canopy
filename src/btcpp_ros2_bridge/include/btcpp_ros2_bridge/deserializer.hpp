@@ -7,6 +7,26 @@
 
 #include "tree_node.hpp"
 
+std::string NodeTypeToStr(BT::NodeType e) {
+    switch (e) {
+        case BT::NodeType::UNDEFINED:
+        return "UNDEFINED";
+        case BT::NodeType::ACTION:
+        return "ACTION";
+        case BT::NodeType::CONDITION:
+        return "CONDITION";
+        case BT::NodeType::CONTROL:
+        return "CONTROL";
+        case BT::NodeType::DECORATOR:
+        return "DECORATOR";
+        case BT::NodeType::SUBTREE:
+        return "SUBTREE";
+        default:
+        return "UNKNOWN";
+    }
+}
+
+
 BT::NodeStatus convert(Serialization::NodeStatus type)
 {
     switch (type)
@@ -57,59 +77,15 @@ BT::PortDirection convert(Serialization::PortDirection direction) // Port direct
     return BT::PortDirection::INOUT;
 }
 
+
+
 std::unordered_map<uint16_t, tree_node> BuildTreeFromFlatbuffers(const Serialization::BehaviorTree *fb_behavior_tree)
 {
     
-    std::unordered_map<uint16_t, tree_node> tree; // store the tree nodes in a map ordered by their uid
-
-    for( const Serialization::NodeModel* model_node: *(fb_behavior_tree->node_models()) )
-    {
-        std::string registration_ID = model_node->registration_name()->c_str();
-        BT::NodeType type = convert(model_node->type());
-    //     std::cout << "registration_ID: " << registration_ID << std::endl;
-        std::cout << "type: " << type << std::endl;
-
-    //     const flatbuffers::Vector<flatbuffers::Offset<Serialization::PortModel>> *ports = model_node->ports();
-    //     std::cout << "num ports: " << ports->size() << std::endl;
-
-    //     for(const Serialization::PortModel* port: *ports)
-    //     {
-    //         std::string port_name = port->port_name()->c_str();
-    //         std::string type_name = port->type_info()->c_str();
-    //         std::string description = port->description()->c_str();
-    //         std::cout << "port_name: " << port_name << std::endl;
-    //         std::cout << "type_name: " << type_name << std::endl;
-    //         std::cout << "description: " << description << std::endl;
-    //     }
-    //     std::cout << "" << std::endl;
-    }
+    std::unordered_map<std::string, tree_node> nodes; // store the tree nodes in a map ordered by their unique "registration_ID"
 
     for( const Serialization::TreeNode* fb_node: *(fb_behavior_tree->nodes()) )
     {
-        // std::string instance_name = fb_node->instance_name()->c_str();
-        // std::string registration_ID = fb_node->registration_name()->c_str();
-        // BT::NodeStatus status = convert(fb_node->status());
-
-        // std::cout << "instance_name: " << instance_name << std::endl;
-        // std::cout << "registration_ID: " << registration_ID << std::endl;
-        // std::cout << "status: " << status << std::endl;
-
-        // for( const Serialization::PortConfig* pair: *(fb_node->port_remaps()) )
-
-            
-        //     std::string port_config_name = pair->port_name()->c_str();
-        //     std::string port_config_remap = pair->remap()->c_str();
-
-        //     std::cout << "port_config_name: " << port_config_name << std::endl;
-        //     std::cout << "port_config_remap: " << port_config_remap << std::endl;
-
-        //     // abs_node.ports_mapping.insert( { QString(pair->port_name()->c_str()),
-        //     //                                  QString(pair->remap()->c_str()) } );
-        // }
-
-        // int uid = fb_node->uid();
-        // std::cout << "uid: " << uid << std::endl;
-        // std::cout << " " << std::endl;
 
         tree_node node;
 
@@ -117,7 +93,6 @@ std::unordered_map<uint16_t, tree_node> BuildTreeFromFlatbuffers(const Serializa
         node.registration_ID = fb_node->registration_name()->c_str();
         node.status = convert(fb_node->status());
         node.uid = fb_node->uid();
-        // node.port_remaps = fb_node->port_remaps();
 
         // iterate through child_uid and add to node.children_uid
         for(int child_uid: *(fb_node->children_uid()))
@@ -125,8 +100,23 @@ std::unordered_map<uint16_t, tree_node> BuildTreeFromFlatbuffers(const Serializa
             node.children_uid.push_back(child_uid);
         }
 
-        tree.insert( { node.uid, node } );
+        nodes.insert( { node.registration_ID, node } );
 
+    }
+
+    for( const Serialization::NodeModel* model_node: *(fb_behavior_tree->node_models()) )
+    {
+        std::string registration_ID = model_node->registration_name()->c_str();
+        BT::NodeType type = convert(model_node->type());
+
+        nodes[registration_ID].type = type; 
+    }
+
+    std::unordered_map<uint16_t, tree_node> tree; // store the tree nodes in a map ordered by their uid
+
+    for (auto& node: nodes)
+    {
+        tree.insert( { node.second.uid, node.second } );
     }
 
     return tree;
