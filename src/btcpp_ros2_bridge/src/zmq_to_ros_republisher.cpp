@@ -61,6 +61,7 @@ class zmq_to_ros_republisher : public rclcpp::Node
       else{
         RCLCPP_INFO(this->get_logger(), "Got tree from server");
         got_tree = true;
+
       }
 
       if(connected_to_pub)

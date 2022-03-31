@@ -82,7 +82,7 @@ BT::PortDirection convert(Serialization::PortDirection direction) // Port direct
 std::unordered_map<uint16_t, tree_node> BuildTreeFromFlatbuffers(const Serialization::BehaviorTree *fb_behavior_tree)
 {
     
-    std::unordered_map<std::string, tree_node> nodes; // store the tree nodes in a map ordered by their unique "registration_ID"
+    std::unordered_map<uint16_t, tree_node> tree; // store the tree nodes in a map ordered by their uid
 
     for( const Serialization::TreeNode* fb_node: *(fb_behavior_tree->nodes()) )
     {
@@ -100,7 +100,7 @@ std::unordered_map<uint16_t, tree_node> BuildTreeFromFlatbuffers(const Serializa
             node.children_uid.push_back(child_uid);
         }
 
-        nodes.insert( { node.registration_ID, node } );
+        tree.insert( { node.uid, node } );
 
     }
 
@@ -109,14 +109,16 @@ std::unordered_map<uint16_t, tree_node> BuildTreeFromFlatbuffers(const Serializa
         std::string registration_ID = model_node->registration_name()->c_str();
         BT::NodeType type = convert(model_node->type());
 
-        nodes[registration_ID].type = type; 
-    }
+        // iterate through nodes.second, find the node with the same registration_ID
+        for(auto& node: tree)
+        {
+            if(node.second.registration_ID == registration_ID)
+            {
+                node.second.type = type;
+                // Add nodemodel ports here if needed
 
-    std::unordered_map<uint16_t, tree_node> tree; // store the tree nodes in a map ordered by their uid
-
-    for (auto& node: nodes)
-    {
-        tree.insert( { node.second.uid, node.second } );
+            }
+        }    
     }
 
     return tree;
