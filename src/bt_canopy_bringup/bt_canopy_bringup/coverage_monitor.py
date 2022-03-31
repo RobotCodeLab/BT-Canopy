@@ -6,12 +6,44 @@ from tree_msgs.msg import BehaviorTreeLog
 from tree_msgs.srv import GetTreeNodes
 from tree_msgs.msg import TreeNode
 
+class BTNode():
+        
+    def __init__(self, node_uid, instance_name, registration_id = None, node_type = None, child_uids = None):
+        self.uid = node_uid
+        self.instance_name = instance_name
+        self.registration_id = registration_id
+        self.type = node_type
+        self.child_uids = child_uids
+
+        self.num_visits = 0
+        self.num_failures = 0
+        self.num_successes = 0
+        self.num_running = 0
+        self.num_idle = 0
+
+    def add_status_change_event(self, current_status):  # current_status: IDLE, RUNNING, SUCCESS or FAILURE
+        
+        self.num_visits += 1
+        
+        if current_status == 'IDLE':
+            self.num_idle += 1
+        elif current_status == 'RUNNING':
+            self.num_running += 1
+        elif current_status == 'SUCCESS':
+            self.num_successes += 1
+        elif current_status == 'FAILURE':
+            self.num_failures += 1
+        else:
+            print('Error: unknown status change event')
+
 class CoverageMonitor(Node):
 
     def __init__(self):
         super().__init__('coverage_monitor')
 
-        self.tree_shape = None
+        self.tree_stats = {} # {node_uid: BTNode}
+
+        # self.tree_shape = None
         self.got_tree_nodes = False
         self.get_tree_client = self.create_client(GetTreeNodes, 'get_tree_nodes')
 
@@ -30,15 +62,33 @@ class CoverageMonitor(Node):
         self.future = self.get_tree_client.call_async(self.request)
 
     def log_callback(self,msg): 
-
         for event in msg.event_log:
-            print(event.node_name)
+            # print(event.node_name)
+
+            if event.node_uid not in self.tree_stats.keys():
+                self.tree_stats[event.node_uid] = BTNode(event.node_uid, event.node_name)
+            else:                
+                self.tree_stats[event.node_uid].add_status_change_event(event.current_status)
+
+
+    def add_tree_nodes(self, tree_nodes):
+
+        for node in tree_nodes:
+            
+            node_uid = node.uid
+
+            if node_uid not in self.tree_stats.keys():
+                self.tree_stats[node_uid] = BTNode(node_uid, node.instance_name, node.registration_id, node.type, node.child_uids)
+            else:
+                self.tree_stats[node_uid].registration_id = node.registration_id
+                self.tree_stats[node_uid].type = node.type
+                self.tree_stats[node_uid].child_uids = node.child_uids
+        
 
 def main(args=None):
     rclpy.init(args=args)
 
     coverage_monitor = CoverageMonitor()
-
     tree_already_requested = False
 
     while rclpy.ok():
@@ -56,15 +106,22 @@ def main(args=None):
 
                     if behavior_tree_msg.success:
                         coverage_monitor.got_tree_nodes = True
-                        coverage_monitor.tree_shape = behavior_tree_msg.nodes
+
+                        coverage_monitor.add_tree_nodes(behavior_tree_msg.nodes)
+
                     else:
                         tree_already_requested = False
 
                 except Exception as e:
                     coverage_monitor.get_logger().error('Failed to get tree nodes: %s' % e)
         else:
-            print(coverage_monitor.tree_shape.nodes)
-                    
+            # for node in coverage_monitor.tree_stats.values():
+            #     print('%s: %s' % (node.instance_name, node.num_visits))
+
+            pass
+
+    # TODO: add a way to print/save the tree stats
+
     coverage_monitor.destroy_node()
     rclpy.shutdown()
 
