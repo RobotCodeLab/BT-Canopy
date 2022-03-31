@@ -41,9 +41,6 @@ class zmq_to_ros_republisher : public rclcpp::Node
         std::chrono::milliseconds(100),
         std::bind(&zmq_to_ros_republisher::timer_callback, this));
 
-      // service_ = this->create_service<tree_msgs::srv::GetTreeNodes>("/get_tree_nodes", std::bind(&zmq_to_ros_republisher::get_tree_nodes_callback, this));
-      // service_ = this->create_service<tree_msgs::srv::GetTreeNodes>("get_tree_nodes", std::bind(&zmq_to_ros_republisher::get_tree_nodes_callback, this));
-
     }
 
     bool connect()
@@ -75,6 +72,7 @@ class zmq_to_ros_republisher : public rclcpp::Node
         
         int timeout_ms = 1;
         zmq_subscriber.setsockopt(ZMQ_SUBSCRIBE, "", 0);
+        zmq_subscriber.setsockopt(ZMQ_LINGER, 0);
         zmq_subscriber.setsockopt(ZMQ_RCVTIMEO,&timeout_ms, sizeof(int) );
         zmq_subscriber.connect(connection_address_pub);
 
@@ -89,34 +87,6 @@ class zmq_to_ros_republisher : public rclcpp::Node
     }
 
   private:
-
-    void get_tree_nodes_callback(const std::shared_ptr<tree_msgs::srv::GetTreeNodes::Request> request,
-                                 const std::shared_ptr<tree_msgs::srv::GetTreeNodes::Response> response)
-    {
-      if(!got_tree)
-      {
-        RCLCPP_WARN(this->get_logger(), "Tree not yet retrieved from server %s:%s", serverIP.c_str(), reqPort.c_str());
-        return;
-      }
-      else{
-        RCLCPP_INFO(this->get_logger(), "Returning tree to client");
-      }
-
-      for(auto &node : uid_tree)
-      {
-        
-        tree_msgs::msg::TreeNode tree_node_msg;
-
-        tree_node_msg.uid = node.second.uid;
-        tree_node_msg.type = NodeTypeToStr(node.second.type);
-        tree_node_msg.instance_name = node.second.instance_name;
-        tree_node_msg.registration_id = node.second.registration_ID;
-        tree_node_msg.child_uids = node.second.children_uid;
-        
-        response->nodes.push_back(tree_node_msg);
-
-      }
-    }
 
     void timer_callback()
     {
@@ -184,7 +154,6 @@ class zmq_to_ros_republisher : public rclcpp::Node
 
     }
 
-    // TODO: code can't exit until tree is received
     bool getTree()
     {
       try{
@@ -192,10 +161,13 @@ class zmq_to_ros_republisher : public rclcpp::Node
         zmq::message_t reply;
 
         zmq::socket_t zmq_client(zmq_context, ZMQ_REQ);
-        zmq_client.connect(connection_address_req); // address for signalling server to send tree info
 
+        zmq_client.setsockopt(ZMQ_LINGER, 0);
         int timeout_ms = 1000;
         zmq_client.setsockopt(ZMQ_RCVTIMEO,&timeout_ms, sizeof(int) );
+
+        zmq_client.connect(connection_address_req); // address for signalling server to send tree info
+
         zmq_client.send(request);
 
         bool got_reply = zmq_client.recv(&reply);
@@ -221,7 +193,6 @@ class zmq_to_ros_republisher : public rclcpp::Node
     
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Publisher<tree_msgs::msg::BehaviorTreeLog>::SharedPtr publisher_;
-    rclcpp::Service<tree_msgs::srv::GetTreeNodes>::SharedPtr service_;
 
   protected:
     rclcpp::Clock::SharedPtr clock;
@@ -240,9 +211,6 @@ class zmq_to_ros_republisher : public rclcpp::Node
 int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
-
-  // std::shared_ptr<rclcpp::Node> treeNodeService = rclcpp::Node::make_shared("get_tree_nodes_server");
-
   rclcpp::spin(std::make_shared<zmq_to_ros_republisher>());
   rclcpp::shutdown();
   return 0;

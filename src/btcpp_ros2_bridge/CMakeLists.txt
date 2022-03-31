@@ -31,6 +31,8 @@ include_directories(
   include
 )
 
+
+
 add_executable(zmq_to_ros_republisher  src/zmq_to_ros_republisher.cpp)
 
 ament_target_dependencies(
@@ -41,10 +43,27 @@ ament_target_dependencies(
   ZMQ
   )
 
+add_executable(get_tree_nodes_service  src/get_tree_nodes_service.cpp)
+
+ament_target_dependencies(
+  get_tree_nodes_service
+  rclcpp
+  tree_msgs
+  behaviortree_cpp_v3 
+  ZMQ
+)
+
 install(TARGETS
   zmq_to_ros_republisher
   DESTINATION lib/${PROJECT_NAME}
 )
+
+install(TARGETS
+  get_tree_nodes_service
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+
 
 install(
   DIRECTORY launch

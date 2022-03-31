@@ -13,4 +13,14 @@ def generate_launch_description():
                 {'pub_port': '1666', 'server_port': '1667', 'server_ip': 'localhost'}
             ],
         ),
+        Node(
+            package='btcpp_ros2_bridge',
+            executable='get_tree_nodes_service',
+            name='get_tree_nodes_service',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                {'pub_port': '1666', 'server_port': '1667', 'server_ip': 'localhost'}
+            ],
+        ),
     ])
