@@ -62,12 +62,12 @@ std::unordered_map<uint16_t, tree_node> BuildTreeFromFlatbuffers(const Serializa
     
     std::unordered_map<uint16_t, tree_node> tree; // store the tree nodes in a map ordered by their uid
 
-    // for( const Serialization::NodeModel* model_node: *(fb_behavior_tree->node_models()) )
-    // {
-    //     std::string registration_ID = model_node->registration_name()->c_str();
-    //     BT::NodeType type = convert(model_node->type());
+    for( const Serialization::NodeModel* model_node: *(fb_behavior_tree->node_models()) )
+    {
+        std::string registration_ID = model_node->registration_name()->c_str();
+        BT::NodeType type = convert(model_node->type());
     //     std::cout << "registration_ID: " << registration_ID << std::endl;
-    //     std::cout << "type: " << type << std::endl;
+        std::cout << "type: " << type << std::endl;
 
     //     const flatbuffers::Vector<flatbuffers::Offset<Serialization::PortModel>> *ports = model_node->ports();
     //     std::cout << "num ports: " << ports->size() << std::endl;
@@ -82,7 +82,7 @@ std::unordered_map<uint16_t, tree_node> BuildTreeFromFlatbuffers(const Serializa
     //         std::cout << "description: " << description << std::endl;
     //     }
     //     std::cout << "" << std::endl;
-    // }
+    }
 
     for( const Serialization::TreeNode* fb_node: *(fb_behavior_tree->nodes()) )
     {

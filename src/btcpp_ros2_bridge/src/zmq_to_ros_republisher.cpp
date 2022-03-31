@@ -122,7 +122,6 @@ class zmq_to_ros_republisher : public rclcpp::Node
                 BT::NodeStatus prev_status = convert(flatbuffers::ReadScalar<Serialization::NodeStatus>(&buffer[offset+10] ));
                 BT::NodeStatus status  = convert(flatbuffers::ReadScalar<Serialization::NodeStatus>(&buffer[offset+11] ));
 
-
                 event.node_name = uid_tree.at(uid).instance_name;
                 event.previous_status = toStr(prev_status);
                 event.current_status = toStr(status);
