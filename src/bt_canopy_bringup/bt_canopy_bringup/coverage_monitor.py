@@ -6,6 +6,11 @@ from tree_msgs.msg import BehaviorTreeLog
 from tree_msgs.srv import GetTreeNodes
 from tree_msgs.msg import TreeNode
 
+import csv
+
+out_file = "node_coverage.csv"
+fields = ['node_uid', 'node_registration_id','node_instance_name', 'num_visits', 'num_failures','num_successes', 'num_running','num_idle']
+
 class BTNode():
         
     def __init__(self, node_uid, instance_name, registration_id = None, node_type = None, child_uids = None):
@@ -61,7 +66,7 @@ class CoverageMonitor(Node):
         self.request = GetTreeNodes.Request()
         self.future = self.get_tree_client.call_async(self.request)
 
-    def log_callback(self,msg): 
+    def log_callback(self, msg: BehaviorTreeLog): 
         for event in msg.event_log:
             # print(event.node_name)
 
@@ -89,6 +94,8 @@ def main(args=None):
     rclpy.init(args=args)
 
     coverage_monitor = CoverageMonitor()
+
+    
     tree_already_requested = False
 
     while rclpy.ok():
@@ -118,7 +125,14 @@ def main(args=None):
             # for node in coverage_monitor.tree_stats.values():
             #     print('%s: %s' % (node.instance_name, node.num_visits))
 
-            pass
+            with open(out_file, 'w') as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=fields)
+                writer.writeheader()
+
+                for node in coverage_monitor.tree_stats.values():
+                    writer.writerow({'node_uid': node.uid, 'node_registration_id': node.registration_id, 'node_instance_name': node.instance_name, 'num_visits': node.num_visits, 'num_failures': node.num_failures, 'num_successes': node.num_successes})
+
+            # pass
 
     # TODO: add a way to print/save the tree stats
 
