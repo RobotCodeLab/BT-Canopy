@@ -3,8 +3,8 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
 
-    pub_port = 1666
-    server_port = 1667
+    pub_port = '1666'
+    server_port = '1667'
     server_ip = '172.17.0.2'
     # server_ip = 'localhost'
 
