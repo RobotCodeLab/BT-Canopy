@@ -43,6 +43,7 @@ if [ $(docker ps | grep $CONTAINER_NAME | wc -l) -eq 0 ]; then
     if [ $(which nvidia-smi | wc -l) -eq 0 ]; then
         echo "nvidia card not available or nvidia-smi is not installed"
         echo "Starting rocker container using integrated graphics"
+        echo "rocker --x11 --devices /dev/dri/card0 $NETWORK_OPTIONS --name $CONTAINER_NAME $IMAGE_NAME"
         gnome-terminal --tab -- rocker --x11 --devices /dev/dri/card0 $NETWORK_OPTIONS --name $CONTAINER_NAME  $IMAGE_NAME
 
     else
