@@ -10,7 +10,8 @@ def generate_launch_description():
             output='screen',
             emulate_tty=True,
             parameters=[
-                {'pub_port': '1666', 'server_port': '1667', 'server_ip': 'localhost'}
+                # {'pub_port': '1666', 'server_port': '1667', 'server_ip': 'localhost'}
+                {'pub_port': '1666', 'server_port': '1667', 'server_ip': '172.17.0.2'}
             ],
         ),
         Node(
@@ -20,7 +21,8 @@ def generate_launch_description():
             output='screen',
             emulate_tty=True,
             parameters=[
-                {'pub_port': '1666', 'server_port': '1667', 'server_ip': 'localhost'}
+                # {'pub_port': '1666', 'server_port': '1667', 'server_ip': 'localhost'}
+                {'pub_port': '1666', 'server_port': '1667', 'server_ip': '172.17.0.2'}
             ],
         ),
     ])
