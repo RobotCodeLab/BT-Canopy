@@ -125,7 +125,7 @@ def main(args=None):
                     coverage_monitor.get_logger().error('Failed to get tree nodes: %s' % e)
         
             
-        if coverage_monitor.stats_updated:
+        if coverage_monitor.stats_updated: # if new stats are available, write to file
 
             with open(out_file, 'w') as csvfile:
                 writer = csv.DictWriter(csvfile, fieldnames=fields)
