@@ -9,6 +9,12 @@ RUN . /opt/ros/$ROS_DISTRO/setup.sh &&\
     rosdep install --from-paths src --ignore-src &&\
     colcon build --symlink-install
 
+ARG tree_server_out_port=1666
+ARG tree_server_in_port=1667
+
+EXPOSE $tree_server_out_port
+EXPOSE $tree_server_in_port
+
 RUN apt-get update && apt-get install -y vim libzmq3-dev
 
 RUN echo 'source ~/BT-Canopy/install/setup.bash' >> ~/.bashrc

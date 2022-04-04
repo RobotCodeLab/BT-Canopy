@@ -130,8 +130,9 @@ def main(args=None):
                 writer.writeheader()
 
                 for node in coverage_monitor.tree_stats.values():
-                    writer.writerow({'node_uid': node.uid, 'node_registration_id': node.registration_id, 'node_instance_name': node.instance_name, 'num_visits': node.num_visits, 'num_failures': node.num_failures, 'num_successes': node.num_successes})
-
+                    writer.writerow({'node_uid': node.uid, 'node_registration_id': node.registration_id, \
+                         'node_instance_name': node.instance_name, 'num_visits': node.num_visits, 'num_failures': \
+                              node.num_failures, 'num_successes': node.num_successes, 'num_running': node.num_running, 'num_idle': node.num_idle})
             # pass
 
     # TODO: add a way to print/save the tree stats

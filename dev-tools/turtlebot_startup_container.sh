@@ -9,6 +9,11 @@ SOURCE_ROS="source /opt/ros/$ROS_VERSION/setup.bash"
 SOURCE_TURTLEBOT="source /root/turtlebot3_ws/install/setup.bash"
 SOURCE_GAZEBO="source /usr/share/gazebo/setup.sh"
 
+NETWORK_OPTIONS=""
+# if '-p' or '--port_forward' is passsed, then set NETWORK_OPTIONS='--network="host"'
+if [ "$1" == "-p" ] || [ "$1" == "--port_forward" ]; then
+    NETWORK_OPTIONS="--network=host"
+fi
 
 function exec_command_in_new_tab() {
 
@@ -38,14 +43,14 @@ if [ $(docker ps | grep $CONTAINER_NAME | wc -l) -eq 0 ]; then
     if [ $(which nvidia-smi | wc -l) -eq 0 ]; then
         echo "nvidia card not available or nvidia-smi is not installed"
         echo "Starting rocker container using integrated graphics"
-
-        gnome-terminal --tab -- rocker --x11 --devices /dev/dri/card0  --name $CONTAINER_NAME $IMAGE_NAME
+        gnome-terminal --tab -- rocker --x11 --devices /dev/dri/card0 $NETWORK_OPTIONS --name $CONTAINER_NAME  $IMAGE_NAME
 
     else
         echo "nvidia card available"
         echo "Starting rocker container with nvidia card"
+        echo "rocker --x11 --nvidia $NETWORK_OPTIONS --name $CONTAINER_NAME  $IMAGE_NAME "
+        gnome-terminal --tab -- rocker --x11 --nvidia $NETWORK_OPTIONS --name $CONTAINER_NAME  $IMAGE_NAME
 
-        gnome-terminal --tab -- rocker --x11 --nvidia --name $CONTAINER_NAME $IMAGE_NAME
     fi
 
     # loop until container with name $CONTAINER_NAME is running
