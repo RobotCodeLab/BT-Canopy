@@ -47,10 +47,10 @@ class CoverageMonitor(Node):
         super().__init__('coverage_monitor')
 
         self.tree_stats = {} # {node_uid: BTNode}
-
-        # self.tree_shape = None
         self.got_tree_nodes = False
         self.get_tree_client = self.create_client(GetTreeNodes, 'get_tree_nodes')
+
+        self.stats_updated = False
 
         self.request = None
         self.future = None
@@ -67,13 +67,17 @@ class CoverageMonitor(Node):
         self.future = self.get_tree_client.call_async(self.request)
 
     def log_callback(self, msg: BehaviorTreeLog): 
-        for event in msg.event_log:
-            # print(event.node_name)
 
-            if event.node_uid not in self.tree_stats.keys():
-                self.tree_stats[event.node_uid] = BTNode(event.node_uid, event.node_name)
-            else:                
-                self.tree_stats[event.node_uid].add_status_change_event(event.current_status)
+        if msg.event_log:
+            self.stats_updated = True
+
+            for event in msg.event_log:
+
+                if event.node_uid not in self.tree_stats.keys():
+                    self.tree_stats[event.node_uid] = BTNode(event.node_uid, event.node_name)
+                else:                
+                    self.tree_stats[event.node_uid].add_status_change_event(event.current_status)
+                    
 
 
     def add_tree_nodes(self, tree_nodes):
@@ -88,7 +92,6 @@ class CoverageMonitor(Node):
                 self.tree_stats[node_uid].registration_id = node.registration_id
                 self.tree_stats[node_uid].type = node.type
                 self.tree_stats[node_uid].child_uids = node.child_uids
-        
 
 def main(args=None):
     rclpy.init(args=args)
@@ -101,29 +104,28 @@ def main(args=None):
     while rclpy.ok():
         rclpy.spin_once(coverage_monitor)
 
-        if not coverage_monitor.got_tree_nodes:
+        if not coverage_monitor.got_tree_nodes: # if tree shape not already received from server
 
-            if not tree_already_requested and coverage_monitor.get_tree_client.service_is_ready() :
+            if not tree_already_requested and coverage_monitor.get_tree_client.service_is_ready(): # if not already requested and service is ready
                 coverage_monitor.request_tree_shape()
-                tree_already_requested = True
+                tree_already_requested = True 
 
-            if not coverage_monitor == None and coverage_monitor.future.done():
+            if not coverage_monitor == None and coverage_monitor.future.done(): # if service response is ready
                 try:
                     behavior_tree_msg = coverage_monitor.future.result()
 
                     if behavior_tree_msg.success:
                         coverage_monitor.got_tree_nodes = True
-
                         coverage_monitor.add_tree_nodes(behavior_tree_msg.nodes)
 
-                    else:
+                    else: # if service call failed
                         tree_already_requested = False
 
                 except Exception as e:
                     coverage_monitor.get_logger().error('Failed to get tree nodes: %s' % e)
-        else:
-            # for node in coverage_monitor.tree_stats.values():
-            #     print('%s: %s' % (node.instance_name, node.num_visits))
+        
+            
+        if coverage_monitor.stats_updated:
 
             with open(out_file, 'w') as csvfile:
                 writer = csv.DictWriter(csvfile, fieldnames=fields)
@@ -131,11 +133,8 @@ def main(args=None):
 
                 for node in coverage_monitor.tree_stats.values():
                     writer.writerow({'node_uid': node.uid, 'node_registration_id': node.registration_id, \
-                         'node_instance_name': node.instance_name, 'num_visits': node.num_visits, 'num_failures': \
-                              node.num_failures, 'num_successes': node.num_successes, 'num_running': node.num_running, 'num_idle': node.num_idle})
-            # pass
-
-    # TODO: add a way to print/save the tree stats
+                        'node_instance_name': node.instance_name, 'num_visits': node.num_visits, 'num_failures': \
+                            node.num_failures, 'num_successes': node.num_successes, 'num_running': node.num_running, 'num_idle': node.num_idle})
 
     coverage_monitor.destroy_node()
     rclpy.shutdown()
