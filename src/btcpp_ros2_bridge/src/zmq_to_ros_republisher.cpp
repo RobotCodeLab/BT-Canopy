@@ -80,8 +80,8 @@ class zmq_to_ros_republisher : public rclcpp::Node
       }
       catch(zmq::error_t e)
       {
-        // connected_to_pub = false;
-        std::cout << "Error connecting to publisher: " << e.what() << std::endl;
+        RCLCPP_ERROR(this->get_logger(), "Could not connect to publisher %s", connection_address_pub.c_str());
+        // std::cout << "Error connecting to publisher: " << e.what() << std::endl;
         return false;
       }
       return true;
@@ -126,7 +126,17 @@ class zmq_to_ros_republisher : public rclcpp::Node
                 BT::NodeStatus prev_status = convert(flatbuffers::ReadScalar<Serialization::NodeStatus>(&buffer[offset+10] ));
                 BT::NodeStatus status  = convert(flatbuffers::ReadScalar<Serialization::NodeStatus>(&buffer[offset+11] ));
 
-                event.node_name = uid_tree.at(uid).instance_name;
+                try{
+                  event.node_name = uid_tree.at(uid).instance_name;
+                }
+                catch(std::out_of_range& e)
+                {
+                  RCLCPP_WARN(this->get_logger(), "Could not find node with uid %d... Getting new tree from server", uid);
+                  got_tree = false;
+                  break;
+                  
+                }
+
                 event.node_uid = uid;
                 event.previous_status = toStr(prev_status);
                 event.current_status = toStr(status);
@@ -136,18 +146,22 @@ class zmq_to_ros_republisher : public rclcpp::Node
                 event_log.push_back(event);
 
             }
+            
+            if (got_tree){ // TODO: check if this recovery behavior works (by changing behavior trees while running)
+              log.event_log = event_log;
+              log.timestamp = this->get_clock()->now();
 
-            log.event_log = event_log;
-            log.timestamp = this->get_clock()->now();
-
-            publisher_->publish(log);
+              publisher_->publish(log);
+            }else{
+              connected_to_pub = connect();
+            }
 
           }
           
         }
         catch( zmq::error_t& err)
         {
-            std::cout << "Error: " << err.what() << std::endl;
+            RCLCPP_ERROR(this->get_logger(), "Error: %s", err.what());
         }
 
       }else{
@@ -175,6 +189,7 @@ class zmq_to_ros_republisher : public rclcpp::Node
         bool got_reply = zmq_client.recv(&reply);
         if(! got_reply)
         {
+          RCLCPP_ERROR(this->get_logger(), "Did not get reply from tree server %s:%s", serverIP.c_str(), reqPort.c_str());
           return false;
         }
 
@@ -186,6 +201,7 @@ class zmq_to_ros_republisher : public rclcpp::Node
       }
       catch(zmq::error_t e)
       {
+        RCLCPP_ERROR(this->get_logger(), "Failed trying to build tree info");
         return false;
       }
 
