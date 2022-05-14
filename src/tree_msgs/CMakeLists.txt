@@ -19,8 +19,11 @@ find_package(builtin_interfaces REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 set(msg_files
-  "msg/BehaviorTreeLog.msg"
-  "msg/BehaviorTreeStatusChange.msg"
+  "msg/BehaviorTree.msg"
+  "msg/NodeParameter.msg"
+  "msg/NodeStatus.msg"
+  "msg/StatusChange.msg"
+  "msg/StatusChangeLog.msg"
   "msg/TreeNode.msg"
 )
 
