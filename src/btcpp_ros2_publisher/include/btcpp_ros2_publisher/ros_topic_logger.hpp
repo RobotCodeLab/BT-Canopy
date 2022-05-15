@@ -1,4 +1,3 @@
-#include "rclcpp/rclcpp.hpp"
 #include "behaviortree_cpp_v3/loggers/abstract_logger.h"
 #include "tf2_ros/buffer_interface.h"
 
@@ -7,8 +6,6 @@
 #include "tree_msgs/msg/node_status.hpp"
 #include "tree_msgs/msg/status_change.hpp"
 #include "tree_msgs/msg/status_change_log.hpp"
-
-// Based off https://github.com/ros-planning/navigation2/blob/30b405c58e6d53ba8c96381416bc4679d35a1483/nav2_behavior_tree/include/nav2_behavior_tree/ros_topic_logger.hpp
 
 class RosTopicLogger : public BT::StatusChangeLogger
 {

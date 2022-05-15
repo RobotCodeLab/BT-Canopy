@@ -3,7 +3,7 @@
 <package format="3">
   <name>btcpp_ros2_publisher</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>A beheaviortree cpp v3 logger for publishing BT info to the ros2 network</description>
   <maintainer email="samuelhodges3000@gmail.com">samuel</maintainer>
   <license>TODO: License declaration</license>
 
