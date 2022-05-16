@@ -17,7 +17,7 @@ class BTRosPublisher : public BT::StatusChangeLogger
             clock_ = node->get_clock();
             // logger_ = node->get_logger();
 
-            tree_name = tree.rootNode()->registrationName();
+            tree_name = tree.rootNode()->name();
             status_change_log_pub_ = node->create_publisher<tree_msgs::msg::StatusChangeLog>(
                 "/status_change_log", 10);
         }
