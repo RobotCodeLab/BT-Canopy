@@ -15,10 +15,18 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+# find dependencies
 find_package(ament_cmake_auto REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(tree_msgs REQUIRED)
 find_package(behaviortree_cpp_v3 REQUIRED)
+
+add_library(${PROJECT_NAME} INTERFACE)
+
+target_include_directories(${PROJECT_NAME} INTERFACE
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>"
+)
 
 set(dependencies
   rclcpp
@@ -26,9 +34,24 @@ set(dependencies
   behaviortree_cpp_v3
 )
 
-install(DIRECTORY include/
-  DESTINATION include/
-  )
+target_link_libraries(${PROJECT_NAME} INTERFACE ${dependencies})
+
+install(TARGETS ${PROJECT_NAME}
+  EXPORT "export_${PROJECT_NAME}"
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION lib
+  INCLUDES DESTINATION include
+)
+
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION include/${PROJECT_NAME}
+)
+
+
+# install(DIRECTORY include/behaviortree_cpp_v3_ros2_publisher
+#   DESTINATION include/
+#   )
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
