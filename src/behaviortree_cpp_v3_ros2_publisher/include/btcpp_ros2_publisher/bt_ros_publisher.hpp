@@ -7,10 +7,10 @@
 #include "tree_msgs/msg/status_change.hpp"
 #include "tree_msgs/msg/status_change_log.hpp"
 
-class RosTopicLogger : public BT::StatusChangeLogger
+class BTRosPublisher : public BT::StatusChangeLogger
 {
     public:
-        RosTopicLogger(const rclcpp::Node::WeakPtr & ros_node, const BT::Tree & tree)
+        BTRosPublisher(const rclcpp::Node::WeakPtr & ros_node, const BT::Tree & tree)
         : StatusChangeLogger(tree.rootNode())
         {
             auto node = ros_node.lock();
