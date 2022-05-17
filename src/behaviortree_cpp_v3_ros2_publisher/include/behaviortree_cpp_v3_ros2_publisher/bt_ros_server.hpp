@@ -22,40 +22,67 @@ public:
             response->behavior_tree.root_uid = root_node_->UID();
             response->behavior_tree.tree_name = root_node_->name();
 
-            for (auto & node : tree_nodes_) {
-                tree_msgs::msg::TreeNode tree_node;
-                tree_node.uid = node->UID();
+            for (auto tree_node_ptr : tree_nodes_) {
+                BT::TreeNode * tree_node = tree_node_ptr.get();
+                tree_msgs::msg::TreeNode node_msg;
                 
-                BT::NodeType type = node->type();
+                node_msg.uid = tree_node->UID();
+                
+                if (auto control = dynamic_cast<const BT::ControlNode*>(tree_node))
+                {
+                    for (const auto& child : control->children())
+                    {
+                        node_msg.children_uid.push_back(child->UID());
+                    }
+                } else if (auto decorator = dynamic_cast<const BT::DecoratorNode*>(tree_node))
+                {
+                    node_msg.children_uid.push_back(decorator->child()->UID());
+                }
 
-                switch(type){
+                switch(tree_node->type()){
                     case BT::NodeType::UNDEFINED:
-                        tree_node.type = 0;
+                        node_msg.type = node_msg.UNDEFINED;
                         break;
                     case BT::NodeType::ACTION:
-                        tree_node.type = 1;
+                        node_msg.type = node_msg.ACTION;
                         break;
                     case BT::NodeType::CONDITION:
-                        tree_node.type = 2;
+                        node_msg.type = node_msg.CONDITION;
                         break;
                     case BT::NodeType::CONTROL:
-
-                        for (auto & child : node->children_nodes_) {
-                            tree_node.children_uid.push_back(child->UID());
-                        }
-
-                        tree_node.type = 3;
+                        node_msg.type = node_msg.CONTROL;
+                        break;
                     case BT::NodeType::DECORATOR:
-                        tree_node.children_uid.push_back(node->child_node_->UID());
-                        tree_node.type = 4;
+                        node_msg.type = node_msg.DECORATOR;
+                        break;
                     case BT::NodeType::SUBTREE:
-                        tree_node.children_uid.push_back(node->child_node_->UID());
-                        tree_node.type = 5;
+                        node_msg.type = node_msg.SUBTREE;
+                        break;
                     default:
                         break;
                 }
 
-                // tree_node.children_uid = node->childrenUIDs();
+                switch(tree_node->status()){
+                    case BT::NodeStatus::IDLE:
+                        node_msg.status.value = node_msg.status.IDLE;
+                        break;
+                    case BT::NodeStatus::RUNNING:
+                        node_msg.status.value = node_msg.status.RUNNING;
+                        break;
+                    case BT::NodeStatus::SUCCESS:
+                        node_msg.status.value = node_msg.status.SUCCESS;
+                        break;
+                    case BT::NodeStatus::FAILURE:
+                        node_msg.status.value = node_msg.status.FAILURE;
+                        break;
+                    default:
+                        break;
+                }
+
+                node_msg.instance_name = tree_node->name();
+                node_msg.registration_name = tree_node->registrationName();
+
+
             }
 
             response->success = true;
@@ -66,7 +93,6 @@ public:
     }
 
 
-    
 protected:
     rclcpp::Service<tree_msgs::srv::GetTreeNodes>::SharedPtr service_;
     rclcpp::Clock::SharedPtr clock_;

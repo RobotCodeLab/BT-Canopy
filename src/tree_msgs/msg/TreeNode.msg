@@ -4,7 +4,7 @@ int8           type
 NodeStatus     status
 string         instance_name
 string         registration_name
-NodeParameter  params
+NodeParameter[]  params
 
 
 int8 UNDEFINED = 0
