@@ -19,6 +19,10 @@ public:
                                 const std::shared_ptr<tree_msgs::srv::GetTreeNodes::Request> request,
                                 const std::shared_ptr<tree_msgs::srv::GetTreeNodes::Response> response) -> void {
 
+            // Set request to void otherwise colcon throws an error
+            (void) request_header;
+            (void) request;
+
             response->behavior_tree.root_uid = root_node_->UID();
             response->behavior_tree.tree_name = root_node_->name();
 
