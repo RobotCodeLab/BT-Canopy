@@ -1,7 +1,6 @@
 uint16         uid
 uint16[]       children_uid
 int8           type
-NodeStatus     status
 string         instance_name
 string         registration_name
 NodeParameter[]  params
