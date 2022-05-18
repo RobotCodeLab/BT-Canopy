@@ -17,9 +17,6 @@ public:
         root_node_ = tree.rootNode();
         tree_nodes_ = tree.nodes;
 
-        // auto handle_add = [this](const std::shared_ptr<rmw_request_id_t> request_header,
-        //                         const std::shared_ptr<tree_msgs::srv::GetTreeNodes::Request> request,
-        //                         const std::shared_ptr<tree_msgs::srv::GetTreeNodes::Response> response) -> void {
         auto handle_add = [this](const std::shared_ptr<rmw_request_id_t> request_header,
                                 const std::shared_ptr<tree_msgs::srv::GetTreeNodes::Request> request,
                                 const std::shared_ptr<tree_msgs::srv::GetTreeNodes::Response> response) -> void {
