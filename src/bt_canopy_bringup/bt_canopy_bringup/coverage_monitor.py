@@ -2,7 +2,8 @@ import rclpy
 from rclpy.node import Node
 
 from tree_msgs.msg import StatusChangeLog
-from tree_msgs.msg import TreeNode
+# from tree_msgs.msg import TreeNode
+from tree_msgs.msg import NodeStatus
 
 import csv
 
@@ -34,13 +35,13 @@ class BTNode():
         
         self.num_visits += 1
         
-        if current_status == 'IDLE':
+        if current_status == NodeStatus.IDLE:
             self.num_idle += 1
-        elif current_status == 'RUNNING':
+        elif current_status == NodeStatus.RUNNING:
             self.num_running += 1
-        elif current_status == 'SUCCESS':
+        elif current_status == NodeStatus.SUCCESS:
             self.num_successes += 1
-        elif current_status == 'FAILURE':
+        elif current_status == NodeStatus.FAILURE:
             self.num_failures += 1
         else:
             print('Error: unknown status change event')
@@ -52,7 +53,6 @@ class CoverageMonitor(Node):
 
         self.trees = {}
 
-        # self.tree_stats = {} # {node_uid: BTNode}
         self.got_tree_nodes = False
 
         self.stats_updated = False
@@ -81,8 +81,9 @@ class CoverageMonitor(Node):
 
             for state_change in msg.state_changes:
 
-                self.trees[msg.behavior_tree.tree_name][state_change.uid].add_status_change_event(state_change.current_status) 
-
+                self.trees[msg.behavior_tree.tree_name][state_change.uid].add_status_change_event(state_change.current_status.value) 
+            
+            self.stats_updated = False
 
     # def add_tree_nodes(self, tree_nodes):
 
@@ -105,8 +106,6 @@ def main(args=None):
     while rclpy.ok():
         rclpy.spin_once(coverage_monitor)
 
-    
-            
         if coverage_monitor.stats_updated: # if new stats are available, write to file
 
             with open(out_file, 'w') as csvfile:
