@@ -1,5 +1,5 @@
 uint16         uid
-uint16[]       children_uids
+uint16[]       child_uids
 int8           type
 string         instance_name
 string         registration_name

@@ -1,24 +1,28 @@
 import rclpy
 from rclpy.node import Node
-# from std_msgs.msg import String
 
-from tree_msgs.msg import BehaviorTreeLog
-from tree_msgs.srv import GetTreeNodes
+from tree_msgs.msg import StatusChangeLog
 from tree_msgs.msg import TreeNode
 
 import csv
 
 out_file = "node_coverage.csv"
-fields = ['node_uid', 'node_registration_id','node_instance_name', 'num_visits', 'num_failures','num_successes', 'num_running','num_idle']
+fields = ['node_uid', 'node_registration_name',\
+    'node_instance_name', 'num_visits', \
+        'num_failures','num_successes',\
+             'num_running','num_idle']
 
 class BTNode():
         
-    def __init__(self, node_uid, instance_name, registration_id = None, node_type = None, child_uids = None):
-        self.uid = node_uid
-        self.instance_name = instance_name
-        self.registration_id = registration_id
-        self.type = node_type
+    def __init__(self, uid, child_uids = None, node_type = None, instance_name=None, registration_name = None, params = None):
+        self.uid = uid
         self.child_uids = child_uids
+        self.type = node_type
+        self.instance_name = instance_name
+        self.registration_name = registration_name
+        self.params = params
+        
+        
 
         self.num_visits = 0
         self.num_failures = 0
@@ -46,9 +50,10 @@ class CoverageMonitor(Node):
     def __init__(self):
         super().__init__('coverage_monitor')
 
-        self.tree_stats = {} # {node_uid: BTNode}
+        self.trees = {}
+
+        # self.tree_stats = {} # {node_uid: BTNode}
         self.got_tree_nodes = False
-        self.get_tree_client = self.create_client(GetTreeNodes, 'get_tree_nodes')
 
         self.stats_updated = False
 
@@ -56,74 +61,51 @@ class CoverageMonitor(Node):
         self.future = None
 
         self.subscription = self.create_subscription(
-            BehaviorTreeLog,
-            'behavior_tree_log',
+            StatusChangeLog,
+            'bt_status_change_log',
             self.log_callback,
             10)
         self.subscription  # prevent unused variable warning
 
-    def request_tree_shape(self):
-        self.request = GetTreeNodes.Request()
-        self.future = self.get_tree_client.call_async(self.request)
+    def log_callback(self, msg: StatusChangeLog): 
 
-    def log_callback(self, msg: BehaviorTreeLog): 
+        if msg.behavior_tree.tree_name not in self.trees.keys():
+            self.trees[msg.behavior_tree.tree_name] = {}
 
-        if msg.event_log:
+            for TreeNode in msg.behavior_tree.nodes:
+                self.trees[msg.behavior_tree.tree_name][TreeNode.uid] \
+                    = BTNode(TreeNode.uid, TreeNode.child_uids, TreeNode.type, TreeNode.instance_name, TreeNode.registration_name, TreeNode.params)
+        
+        if msg.state_changes:
             self.stats_updated = True
 
-            for event in msg.event_log:
+            for state_change in msg.state_changes:
 
-                if event.node_uid not in self.tree_stats.keys():
-                    self.tree_stats[event.node_uid] = BTNode(event.node_uid, event.node_name)
-                else:                
-                    self.tree_stats[event.node_uid].add_status_change_event(event.current_status)
-                    
+                self.trees[msg.behavior_tree.tree_name][state_change.uid].add_status_change_event(state_change.current_status) 
 
 
-    def add_tree_nodes(self, tree_nodes):
+    # def add_tree_nodes(self, tree_nodes):
 
-        for node in tree_nodes:
+    #     for node in tree_nodes:
             
-            node_uid = node.uid
+    #         node_uid = node.uid
 
-            if node_uid not in self.tree_stats.keys():
-                self.tree_stats[node_uid] = BTNode(node_uid, node.instance_name, node.registration_id, node.type, node.child_uids)
-            else:
-                self.tree_stats[node_uid].registration_id = node.registration_id
-                self.tree_stats[node_uid].type = node.type
-                self.tree_stats[node_uid].child_uids = node.child_uids
+    #         if node_uid not in self.tree_stats.keys():
+    #             self.tree_stats[node_uid] = BTNode(node_uid, node.instance_name, node.registration_name, node.type, node.child_uids)
+    #         else:
+    #             self.tree_stats[node_uid].registration_name = node.registration_name
+    #             self.tree_stats[node_uid].type = node.type
+    #             self.tree_stats[node_uid].child_uids = node.child_uids
 
 def main(args=None):
     rclpy.init(args=args)
 
     coverage_monitor = CoverageMonitor()
 
-    
-    tree_already_requested = False
-
     while rclpy.ok():
         rclpy.spin_once(coverage_monitor)
 
-        if not coverage_monitor.got_tree_nodes: # if tree shape not already received from server
-
-            if not tree_already_requested and coverage_monitor.get_tree_client.service_is_ready(): # if not already requested and service is ready
-                coverage_monitor.request_tree_shape()
-                tree_already_requested = True 
-
-            if not coverage_monitor == None and coverage_monitor.future.done(): # if service response is ready
-                try:
-                    behavior_tree_msg = coverage_monitor.future.result()
-
-                    if behavior_tree_msg.success:
-                        coverage_monitor.got_tree_nodes = True
-                        coverage_monitor.add_tree_nodes(behavior_tree_msg.nodes)
-
-                    else: # if service call failed
-                        tree_already_requested = False
-
-                except Exception as e:
-                    coverage_monitor.get_logger().error('Failed to get tree nodes: %s' % e)
-        
+    
             
         if coverage_monitor.stats_updated: # if new stats are available, write to file
 
@@ -132,7 +114,7 @@ def main(args=None):
                 writer.writeheader()
 
                 for node in coverage_monitor.tree_stats.values():
-                    writer.writerow({'node_uid': node.uid, 'node_registration_id': node.registration_id, \
+                    writer.writerow({'node_uid': node.uid, 'node_registration_name': node.registration_name, \
                         'node_instance_name': node.instance_name, 'num_visits': node.num_visits, 'num_failures': \
                             node.num_failures, 'num_successes': node.num_successes, 'num_running': node.num_running, 'num_idle': node.num_idle})
 
