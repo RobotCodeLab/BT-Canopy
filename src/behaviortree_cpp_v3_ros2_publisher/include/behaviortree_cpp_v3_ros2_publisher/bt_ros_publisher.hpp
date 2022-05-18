@@ -10,8 +10,6 @@
 #include "tree_msgs/msg/status_change.hpp"
 #include "tree_msgs/msg/status_change_log.hpp"
 
-#include "tree_msgs/srv/get_tree_nodes.hpp"
-
 #include "rclcpp/rclcpp.hpp"
 
 class BTRosPublisher : public BT::StatusChangeLogger
