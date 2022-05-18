@@ -14,16 +14,16 @@
 
 #include "rclcpp/rclcpp.hpp"
 
-#include "behaviortree_cpp_v3_ros2_publisher/bt_ros_publisher.hpp"
+// #include "behaviortree_cpp_v3_ros2_publisher/bt_ros_publisher.hpp"
 
 // class BTRosPublisher : public BT::StatusChangeLogger
 class BTRosPublisher : public BT::StatusChangeLogger
 {
 
     public:
-        BTRosPublisher(const rclcpp::Node::WeakPtr & ros_node, const BT::Tree & tree);
-
+    
         tree_msgs::msg::BehaviorTree create_behavior_tree(const BT::Tree & tree);
+        BTRosPublisher(const rclcpp::Node::WeakPtr & ros_node, const BT::Tree & tree);
 
         void callback(
             BT::Duration timestamp,
