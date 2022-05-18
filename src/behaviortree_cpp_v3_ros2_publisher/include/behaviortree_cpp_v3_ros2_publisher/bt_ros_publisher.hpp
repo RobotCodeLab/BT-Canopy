@@ -18,8 +18,8 @@ class BTRosPublisher : public BT::StatusChangeLogger
 {
 
     public:
-        BTRosPublisher::BTRosPublisher(const rclcpp::Node::WeakPtr & ros_node, const BT::Tree & tree)
-        : BT::StatusChangeLogger(tree.rootNode())
+        BTRosPublisher(const rclcpp::Node::WeakPtr & ros_node, const BT::Tree & tree)
+        : StatusChangeLogger(tree.rootNode())
         {
             auto node = ros_node.lock();
             clock_ = node->get_clock();
