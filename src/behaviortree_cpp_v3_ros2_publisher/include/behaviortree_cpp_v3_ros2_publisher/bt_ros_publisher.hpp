@@ -45,4 +45,6 @@ class BTRosPublisher : public BT::StatusChangeLogger
         tree_msgs::msg::BehaviorTree * behavior_tree;
 };
 
+#include "behaviortree_cpp_v3_ros2_publisher/bt_ros_publisher_impl.hpp"
+
 #endif // BT_ROS_PUBLISHER_HPP
