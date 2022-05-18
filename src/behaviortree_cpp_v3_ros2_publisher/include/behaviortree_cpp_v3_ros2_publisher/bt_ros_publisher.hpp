@@ -29,11 +29,8 @@ class BTRosPublisher : public BT::StatusChangeLogger
 
             tree_name = tree.rootNode()->name();
             status_change_log_pub_ = node->create_publisher<tree_msgs::msg::StatusChangeLog>(
-                "/status_change_log", 10);   
+                "/bt_status_change_log", 10);   
         
-            // behavior_tree = &create_behavior_tree(tree);
-
-            // tree_msgs::msg::BehaviorTree behavior_tree;
             behavior_tree.root_uid = tree.rootNode()->UID();
             behavior_tree.tree_name = tree.rootNode()->name();
 
@@ -64,10 +61,7 @@ class BTRosPublisher : public BT::StatusChangeLogger
                     case BT::NodeType::CONDITION:
                         node_msg.type = node_msg.CONDITION;
                         break;
-                    case BT::NodeType::CONTROL:
-                        node_msg.type = node_msg.CONTROL;
-                        break;
-                    case BT::NodeType::DECORATOR:
+                    case BT::NodeType::CONTROL:        // void flush()
                         node_msg.type = node_msg.DECORATOR;
                         break;
                     case BT::NodeType::SUBTREE:
@@ -85,8 +79,6 @@ class BTRosPublisher : public BT::StatusChangeLogger
             
         }  
 
-
-        // void callback(
         void callback(
             BT::Duration timestamp,
             const BT::TreeNode & node,
@@ -104,7 +96,7 @@ class BTRosPublisher : public BT::StatusChangeLogger
             state_changes.push_back(std::move(event));
 
         }
-        // void flush()
+
         void flush() override
         {
             if (!state_changes.empty()){
@@ -116,7 +108,6 @@ class BTRosPublisher : public BT::StatusChangeLogger
             }
         }
         
-
     protected:
         rclcpp::Clock::SharedPtr clock_;
         rclcpp::Publisher<tree_msgs::msg::StatusChangeLog>::SharedPtr status_change_log_pub_;
