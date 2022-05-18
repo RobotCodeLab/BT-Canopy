@@ -22,7 +22,7 @@ class BTRosPublisher : public BT::StatusChangeLogger
 
     public:
     
-        tree_msgs::msg::BehaviorTree create_behavior_tree(const BT::Tree & tree);
+        // tree_msgs::msg::BehaviorTree create_behavior_tree(const BT::Tree & tree);
         BTRosPublisher(const rclcpp::Node::WeakPtr & ros_node, const BT::Tree & tree);
 
         void callback(
@@ -42,7 +42,7 @@ class BTRosPublisher : public BT::StatusChangeLogger
 
         std::vector<BT::TreeNode::Ptr> tree_nodes_;
         BT::TreeNode * root_node_;
-        tree_msgs::msg::BehaviorTree * behavior_tree;
+        tree_msgs::msg::BehaviorTree behavior_tree;
 };
 
 #include "behaviortree_cpp_v3_ros2_publisher/bt_ros_publisher_impl.hpp"
