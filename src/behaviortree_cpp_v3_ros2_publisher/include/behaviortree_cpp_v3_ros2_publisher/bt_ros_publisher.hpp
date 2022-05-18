@@ -42,11 +42,11 @@ class BTRosPublisher : public BT::StatusChangeLogger
                 {
                     for (const auto& child : control->children())
                     {
-                        node_msg.children_uid.push_back(child->UID());
+                        node_msg.child_uids.push_back(child->UID());
                     }
                 } else if (auto decorator = dynamic_cast<const BT::DecoratorNode*>(tree_node))
                 {
-                    node_msg.children_uid.push_back(decorator->child()->UID());
+                    node_msg.child_uids.push_back(decorator->child()->UID());
                 }
 
                 switch(tree_node->type()){
