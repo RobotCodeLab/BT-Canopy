@@ -9,39 +9,39 @@
 
 #include "tree_msgs/srv/get_tree_nodes.hpp"
 
+#include "rclcpp/rclcpp.hpp"
+
+#include "behaviortree_cpp_v3_ros2_publisher/bt_ros_server.hpp"
+
 class BTRosPublisher : public BT::StatusChangeLogger
 {
+    tree_msgs::msg::BehaviorTree create_behavior_tree(const BT::Tree & tree);
+
     public:
         BTRosPublisher(const rclcpp::Node::WeakPtr & ros_node, const BT::Tree & tree)
         : StatusChangeLogger(tree.rootNode())
         {
             auto node = ros_node.lock();
             clock_ = node->get_clock();
-            // logger_ = node->get_logger();
 
-            //
             root_node_ = tree.rootNode();
-            tree_nodes_ = tree.nodes;
-            //
+            tree_nodes_ = tree.nodes;      
 
             tree_name = tree.rootNode()->name();
             status_change_log_pub_ = node->create_publisher<tree_msgs::msg::StatusChangeLog>(
-                "/status_change_log", 10);
+                "/status_change_log", 10);   
+        
+            behavior_tree = &create_behavior_tree(tree);
 
+        }  
 
-            //
-            auto handle_add = [this](const std::shared_ptr<rmw_request_id_t> request_header,
-                                const std::shared_ptr<tree_msgs::srv::GetTreeNodes::Request> request,
-                                const std::shared_ptr<tree_msgs::srv::GetTreeNodes::Response> response) -> void {
+        tree_msgs::msg::BehaviorTree create_behavior_tree(const BT::Tree & tree){
+            
+            tree_msgs::msg::BehaviorTree behavior_tree;
+            behavior_tree.root_uid = tree.rootNode()->UID();
+            behavior_tree.tree_name = tree.rootNode()->name();
 
-            // Set request to void otherwise colcon throws an error
-            (void) request_header;
-            (void) request;
-
-            response->behavior_tree.root_uid = root_node_->UID();
-            response->behavior_tree.tree_name = root_node_->name();
-
-            for (auto tree_node_ptr : tree_nodes_) {
+            for (auto tree_node_ptr : tree.nodes) {
                 BT::TreeNode * tree_node = tree_node_ptr.get();
                 tree_msgs::msg::TreeNode node_msg;
                 
@@ -101,16 +101,9 @@ class BTRosPublisher : public BT::StatusChangeLogger
                 node_msg.instance_name = tree_node->name();
                 node_msg.registration_name = tree_node->registrationName();
 
-
+                behavior_tree.nodes.push_back(node_msg);
             }
-
-            response->success = true;
-        };
-
-        service_ = node->create_service<tree_msgs::srv::GetTreeNodes>("get_tree_nodes", handle_add);
-
-        //
-        
+            return behavior_tree;
         }
 
         void callback(
@@ -126,6 +119,7 @@ class BTRosPublisher : public BT::StatusChangeLogger
 
             event.prev_status.value = static_cast<int>(prev_status);
             event.status.value = static_cast<int>(status);
+
             state_changes.push_back(std::move(event));
 
         }
@@ -135,7 +129,7 @@ class BTRosPublisher : public BT::StatusChangeLogger
             if (!state_changes.empty()){
                 auto msg = std::make_unique<tree_msgs::msg::StatusChangeLog>();
                 msg->state_changes = state_changes;
-                msg->tree_name = tree_name;
+                msg->behavior_tree = *behavior_tree;
                 status_change_log_pub_->publish(std::move(msg));
                 state_changes.clear();
             }
@@ -144,14 +138,13 @@ class BTRosPublisher : public BT::StatusChangeLogger
 
     protected:
         rclcpp::Clock::SharedPtr clock_;
-        // rclcpp::Logger logger_{rclcpp::get_logger("bt_navigator")};
         rclcpp::Publisher<tree_msgs::msg::StatusChangeLog>::SharedPtr status_change_log_pub_;
         std::vector<tree_msgs::msg::StatusChange> state_changes;
 
         std::string tree_name;
 
-        rclcpp::Service<tree_msgs::srv::GetTreeNodes>::SharedPtr service_;
         std::vector<BT::TreeNode::Ptr> tree_nodes_;
         BT::TreeNode * root_node_;
+        tree_msgs::msg::BehaviorTree * behavior_tree;
     
 };
