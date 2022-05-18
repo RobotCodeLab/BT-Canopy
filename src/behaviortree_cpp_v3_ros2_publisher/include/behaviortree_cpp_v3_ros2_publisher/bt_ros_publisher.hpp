@@ -81,22 +81,22 @@ class BTRosPublisher : public BT::StatusChangeLogger
                         break;
                 }
 
-                switch(tree_node->status()){
-                    case BT::NodeStatus::IDLE:
-                        node_msg.status.value = node_msg.status.IDLE;
-                        break;
-                    case BT::NodeStatus::RUNNING:
-                        node_msg.status.value = node_msg.status.RUNNING;
-                        break;
-                    case BT::NodeStatus::SUCCESS:
-                        node_msg.status.value = node_msg.status.SUCCESS;
-                        break;
-                    case BT::NodeStatus::FAILURE:
-                        node_msg.status.value = node_msg.status.FAILURE;
-                        break;
-                    default:
-                        break;
-                }
+                // switch(tree_node->status()){
+                //     case BT::NodeStatus::IDLE:
+                //         node_msg.status.value = node_msg.status.IDLE;
+                //         break;
+                //     case BT::NodeStatus::RUNNING:
+                //         node_msg.status.value = node_msg.status.RUNNING;
+                //         break;
+                //     case BT::NodeStatus::SUCCESS:
+                //         node_msg.status.value = node_msg.status.SUCCESS;
+                //         break;
+                //     case BT::NodeStatus::FAILURE:
+                //         node_msg.status.value = node_msg.status.FAILURE;
+                //         break;
+                //     default:
+                //         break;
+                // }
 
                 node_msg.instance_name = tree_node->name();
                 node_msg.registration_name = tree_node->registrationName();
