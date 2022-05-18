@@ -3,11 +3,13 @@
 #include "behaviortree_cpp_v3/bt_factory.h"
 #include "tree_msgs/srv/get_tree_nodes.hpp"
 
-class BTRosServer : public rclcpp::Node
+// class BTRosServer : public rclcpp::Node
+class BTRosServer 
 {
 public:
-    BTRosServer(const rclcpp::Node::WeakPtr & ros_node, const BT::Tree & tree)
-     : rclcpp::Node::Node("BTRosServer")
+    // BTRosServer(const rclcpp::Node::WeakPtr & ros_node, const BT::Tree & tree)
+    //  : rclcpp::Node::Node("BTRosServer")
+        BTRosServer(const rclcpp::Node::WeakPtr & ros_node, const BT::Tree & tree)
     {
 
         auto node = ros_node.lock();
@@ -15,6 +17,9 @@ public:
         root_node_ = tree.rootNode();
         tree_nodes_ = tree.nodes;
 
+        // auto handle_add = [this](const std::shared_ptr<rmw_request_id_t> request_header,
+        //                         const std::shared_ptr<tree_msgs::srv::GetTreeNodes::Request> request,
+        //                         const std::shared_ptr<tree_msgs::srv::GetTreeNodes::Response> response) -> void {
         auto handle_add = [this](const std::shared_ptr<rmw_request_id_t> request_header,
                                 const std::shared_ptr<tree_msgs::srv::GetTreeNodes::Request> request,
                                 const std::shared_ptr<tree_msgs::srv::GetTreeNodes::Response> response) -> void {
@@ -22,6 +27,8 @@ public:
             // Set request to void otherwise colcon throws an error
             (void) request_header;
             (void) request;
+
+            RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"Received request to send tree");
 
             response->behavior_tree.root_uid = root_node_->UID();
             response->behavior_tree.tree_name = root_node_->name();
@@ -86,13 +93,15 @@ public:
                 node_msg.instance_name = tree_node->name();
                 node_msg.registration_name = tree_node->registrationName();
 
+                response->behavior_tree.nodes.push_back(node_msg);
 
             }
 
             response->success = true;
         };
 
-        service_ = this->create_service<tree_msgs::srv::GetTreeNodes>("get_tree_nodes", handle_add);
+        // service_ = this->create_service<tree_msgs::srv::GetTreeNodes>("get_tree_nodes", handle_add);
+        service_ = node->create_service<tree_msgs::srv::GetTreeNodes>("get_tree_nodes", handle_add);
 
     }
 
