@@ -8,7 +8,7 @@ from tree_msgs.msg import NodeStatus
 import csv
 
 out_file = "node_coverage.csv"
-fields = ['node_uid', 'node_registration_name',\
+fields = ['uid', 'node_registration_name',\
     'node_instance_name', 'num_visits', \
         'num_failures','num_successes',\
              'num_running','num_idle']
@@ -83,7 +83,7 @@ class CoverageMonitor(Node):
 
             for state_change in msg.state_changes:
 
-                print("state change: ", state_change.node_uid, state_change.status)
+                print("state change: ", state_change.uid,":", state_change.status)
 
                 self.trees[msg.behavior_tree.tree_name][state_change.uid].add_status_change_event(state_change.status.value) 
 
@@ -102,7 +102,7 @@ def main(args=None):
                 writer.writeheader()
 
                 for node in coverage_monitor.trees.values():
-                    writer.writerow({'node_uid': node.uid, 'node_registration_name': node.registration_name, \
+                    writer.writerow({'uid': node.uid, 'node_registration_name': node.registration_name, \
                         'node_instance_name': node.instance_name, 'num_visits': node.num_visits, 'num_failures': \
                             node.num_failures, 'num_successes': node.num_successes, 'num_running': node.num_running, 'num_idle': node.num_idle})
 
