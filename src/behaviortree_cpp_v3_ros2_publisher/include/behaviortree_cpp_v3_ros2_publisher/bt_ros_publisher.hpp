@@ -113,12 +113,12 @@ class BTRosPublisher : public BT::StatusChangeLogger
         BTRosPublisher(const rclcpp::Node::WeakPtr & ros_node, const BT::Tree & tree)
         : StatusChangeLogger(tree.rootNode()){
 
-            for(auto tree_node_ptr : tree.nodes){
-                BT::TreeNode * tree_node = tree_node_ptr.get();
-                if(tree_node->UID() < uid_offset){
-                    uid_offset = tree_node->UID();
-                }
-            }
+            // for(auto tree_node_ptr : tree.nodes){
+            //     BT::TreeNode * tree_node = tree_node_ptr.get();
+            //     if(tree_node->UID() < uid_offset){
+            //         uid_offset = tree_node->UID();
+            //     }
+            // }
             
             BTRosPublisher(ros_node, tree, "");
         }
@@ -133,7 +133,8 @@ class BTRosPublisher : public BT::StatusChangeLogger
             tree_msgs::msg::StatusChange event;
 
             event.timestamp = tf2_ros::toMsg(tf2::TimePoint(timestamp));
-            event.uid = node.UID() - uid_offset;
+            // event.uid = node.UID() - uid_offset;
+            event.uid = node.UID();
 
             event.prev_status.value = static_cast<int>(prev_status);
             event.status.value = static_cast<int>(status);
@@ -164,7 +165,7 @@ class BTRosPublisher : public BT::StatusChangeLogger
         std::vector<BT::TreeNode::Ptr> tree_nodes_;
         BT::TreeNode * root_node_;
         tree_msgs::msg::BehaviorTree  behavior_tree;
-        u_int16_t uid_offset;
+        // u_int16_t uid_offset;
 };
 
 #endif // BT_ROS_PUBLISHER_HPP
