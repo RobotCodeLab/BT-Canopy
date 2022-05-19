@@ -16,7 +16,8 @@ class BTRosPublisher : public BT::StatusChangeLogger
 {
 
     public:
-        BTRosPublisher(const rclcpp::Node::WeakPtr & ros_node, const BT::Tree & tree)
+
+        BTRosPublisher(const rclcpp::Node::WeakPtr & ros_node, const BT::Tree & tree, const std::string & tree_uid)
         : StatusChangeLogger(tree.rootNode())
         {
             auto node = ros_node.lock();
@@ -25,76 +26,80 @@ class BTRosPublisher : public BT::StatusChangeLogger
             root_node_ = tree.rootNode();
             tree_nodes_ = tree.nodes; 
 
-            nodes_hash = "";
+            // nodes_hash = "";
 
             tree_name = tree.rootNode()->name();
             status_change_log_pub_ = node->create_publisher<tree_msgs::msg::StatusChangeLog>(
                 "/bt_status_change_log", 10);
 
             
-            uid_offset = tree.rootNode()->UID();
-            // get the smallest node id
-            for(auto tree_node_ptr : tree.nodes){
-                BT::TreeNode * tree_node = tree_node_ptr.get();
-                if(tree_node->UID() < uid_offset){
-                    uid_offset = tree_node->UID();
-                }
-            }
+            // uid_offset = tree.rootNode()->UID();
+            // // get the smallest node id
+            // for(auto tree_node_ptr : tree.nodes){
+            //     BT::TreeNode * tree_node = tree_node_ptr.get();
+            //     if(tree_node->UID() < uid_offset){
+            //         uid_offset = tree_node->UID();
+            //     }
+            // }
 
-            behavior_tree.root_uid = tree.rootNode()->UID() - uid_offset;
-            behavior_tree.tree_name = tree.rootNode()->name();
+            // behavior_tree.root_uid = tree.rootNode()->UID() - uid_offset;
+             behavior_tree.root_uid = tree.rootNode()->UID();
+            behavior_tree.tree_uid = tree_uid;
 
             for (auto tree_node_ptr : tree.nodes) {
                 BT::TreeNode * tree_node = tree_node_ptr.get();
                 tree_msgs::msg::TreeNode node_msg;
                 
-                node_msg.uid = tree_node->UID() - uid_offset;
+                // node_msg.uid = tree_node->UID() - uid_offset;
+                node_msg.uid = tree_node->UID();
 
-                nodes_hash += "n";
+                // nodes_hash += "n";
 
                 switch(tree_node->type()){
                     case BT::NodeType::UNDEFINED:
                         node_msg.type = node_msg.UNDEFINED;
-                        nodes_hash += "u";
+                        // nodes_hash += "u";
                         break;
                     case BT::NodeType::ACTION:
                         node_msg.type = node_msg.ACTION;
-                        nodes_hash += "a";
+                        // nodes_hash += "a";
                         break;
                     case BT::NodeType::CONDITION:
                         node_msg.type = node_msg.CONDITION;
-                        nodes_hash += "c";
+                        // nodes_hash += "c";
                         break;
                     case BT::NodeType::CONTROL:        // void flush()
                         node_msg.type = node_msg.DECORATOR;
-                        nodes_hash += "d";
+                        // nodes_hash += "d";
                         break;
                     case BT::NodeType::SUBTREE:
                         node_msg.type = node_msg.SUBTREE;
-                        nodes_hash += "s";
+                        // nodes_hash += "s";
                         break;
                     default:
                         break;
                 }
 
-                nodes_hash += std::to_string(tree_node->UID() - uid_offset);
+                // nodes_hash += std::to_string(tree_node->UID() - uid_offset)+ "\n";
 
                 if (auto control = dynamic_cast<const BT::ControlNode*>(tree_node))
                 {
                     for (const auto& child : control->children())
                     {
-                        node_msg.child_uids.push_back(child->UID() - uid_offset);
+                        // node_msg.child_uids.push_back(child->UID() - uid_offset);
+                        node_msg.child_uids.push_back(child->UID() );
 
-                        nodes_hash += "c";
-                        nodes_hash += std::to_string(child->UID() - uid_offset);
+                        // nodes_hash += "-";
+                        // nodes_hash += std::to_string(child->UID() - uid_offset) + "\n";
 
                     }
                 } else if (auto decorator = dynamic_cast<const BT::DecoratorNode*>(tree_node))
                 {
-                    node_msg.child_uids.push_back(decorator->child()->UID() - uid_offset);
+                    // node_msg.child_uids.push_back(decorator->child()->UID() - uid_offset);
+                    node_msg.child_uids.push_back(decorator->child()->UID());
 
-                    nodes_hash += "c";
-                    nodes_hash += std::to_string(decorator->child()->UID() - uid_offset);
+                    // nodes_hash += "-";
+                    // nodes_hash += std::to_string(decorator->child()->UID() - uid_offset) + "\n";
                 }
 
                 node_msg.instance_name = tree_node->name();
@@ -102,10 +107,22 @@ class BTRosPublisher : public BT::StatusChangeLogger
 
                 behavior_tree.nodes.push_back(node_msg);
             }
-
-            behavior_tree.nodes_hash = nodes_hash;
             
         }  
+
+        BTRosPublisher(const rclcpp::Node::WeakPtr & ros_node, const BT::Tree & tree)
+        : StatusChangeLogger(tree.rootNode()){
+
+            for(auto tree_node_ptr : tree.nodes){
+                BT::TreeNode * tree_node = tree_node_ptr.get();
+                if(tree_node->UID() < uid_offset){
+                    uid_offset = tree_node->UID();
+                }
+            }
+            
+            BTRosPublisher(ros_node, tree, "");
+        }
+
 
         void callback(
             BT::Duration timestamp,
@@ -142,7 +159,7 @@ class BTRosPublisher : public BT::StatusChangeLogger
         std::vector<tree_msgs::msg::StatusChange> state_changes;
 
         std::string tree_name;
-        std::string nodes_hash;
+        // std::string nodes_hash;
 
         std::vector<BT::TreeNode::Ptr> tree_nodes_;
         BT::TreeNode * root_node_;

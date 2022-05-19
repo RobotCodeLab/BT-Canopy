@@ -6,6 +6,7 @@ from tree_msgs.msg import StatusChangeLog
 from tree_msgs.msg import NodeStatus
 
 import csv
+import re
 
 # out_file = "tree"
 fields = ['uid', 'node_registration_name',\
@@ -70,24 +71,24 @@ class CoverageMonitor(Node):
 
     def log_callback(self, msg: StatusChangeLog): 
 
-        tree_key = msg.behavior_tree.tree_name + '_' + msg.behavior_tree.nodes_hash
+        tree_uid = msg.behavior_tree.tree_uid
 
-        if tree_key not in self.trees.keys():
-            self.trees[tree_key] = {}
+        if tree_uid not in self.trees.keys():
+            self.trees[tree_uid] = {}
 
-            print("adding tree: " + tree_key)
+            print("adding tree: " + tree_uid)
 
             for TreeNode in msg.behavior_tree.nodes:
-                self.trees[tree_key][TreeNode.uid] \
+                self.trees[tree_uid][TreeNode.uid] \
                     = BTNode(TreeNode.uid, TreeNode.child_uids, TreeNode.type, TreeNode.instance_name, TreeNode.registration_name, TreeNode.params)
         
         if msg.state_changes:
 
-            self.trees_changed[tree_key] = True
+            self.trees_changed[tree_uid] = True
 
             for state_change in msg.state_changes:
 
-                self.trees[tree_key][state_change.uid].add_status_change_event(state_change.status.value) 
+                self.trees[tree_uid][state_change.uid].add_status_change_event(state_change.status.value) 
 
 
 def main(args=None):
@@ -98,11 +99,14 @@ def main(args=None):
     while rclpy.ok():
         rclpy.spin_once(coverage_monitor)
 
-        for i, (tree_key, tree) in enumerate(coverage_monitor.trees.items()):
+        for tree_uid, tree in coverage_monitor.trees.items():
 
-            if coverage_monitor.trees_changed[tree_key]:
+            if coverage_monitor.trees_changed[tree_uid]:
 
-                with open("tree_coverage_{tree_num}.csv".format(tree_num = i), 'w') as csvfile:
+                # format tree_uid as valid filename
+                formatted_tree_uid = re.sub('[^\w_.)( -]', '-', tree_uid)
+
+                with open("canopy_{tree_uid}.csv".format(formatted_tree_uid), 'w') as csvfile:
                     writer = csv.DictWriter(csvfile, fieldnames=fields)
                     writer.writeheader()
 
@@ -111,7 +115,7 @@ def main(args=None):
                             'node_instance_name': node.instance_name, 'num_visits': node.num_visits, 'num_failures': \
                                 node.num_failures, 'num_successes': node.num_successes, 'num_running': node.num_running, 'num_idle': node.num_idle})
 
-                coverage_monitor.trees_changed[tree_key] = False
+                coverage_monitor.trees_changed[tree_uid] = False
 
     coverage_monitor.destroy_node()
     rclpy.shutdown()
