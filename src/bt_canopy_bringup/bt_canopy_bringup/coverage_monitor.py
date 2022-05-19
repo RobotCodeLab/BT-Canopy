@@ -79,11 +79,13 @@ class CoverageMonitor(Node):
         if msg.state_changes:
             self.stats_updated = True
 
+            print("Tree: " + self.trees)
+
             for state_change in msg.state_changes:
 
+                print("state change: ", state_change.node_uid, state_change.status)
+
                 self.trees[msg.behavior_tree.tree_name][state_change.uid].add_status_change_event(state_change.status.value) 
-            
-            self.stats_updated = False
 
 def main(args=None):
     rclpy.init(args=args)
@@ -99,10 +101,12 @@ def main(args=None):
                 writer = csv.DictWriter(csvfile, fieldnames=fields)
                 writer.writeheader()
 
-                for node in coverage_monitor.tree_stats.values():
+                for node in coverage_monitor.trees.values():
                     writer.writerow({'node_uid': node.uid, 'node_registration_name': node.registration_name, \
                         'node_instance_name': node.instance_name, 'num_visits': node.num_visits, 'num_failures': \
                             node.num_failures, 'num_successes': node.num_successes, 'num_running': node.num_running, 'num_idle': node.num_idle})
+
+            coverage_monitor.stats_updated = False
 
     coverage_monitor.destroy_node()
     rclpy.shutdown()
