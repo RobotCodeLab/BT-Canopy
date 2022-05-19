@@ -106,7 +106,7 @@ def main(args=None):
                 # format tree_uid as valid filename
                 formatted_tree_uid = re.sub('[^\w_.)( -]', '-', tree_uid)
 
-                with open("canopy_{tree_uid}.csv".format(formatted_tree_uid), 'w') as csvfile:
+                with open("canopy_{tree_uid}.csv".format(tree_uid = formatted_tree_uid), 'w') as csvfile:
                     writer = csv.DictWriter(csvfile, fieldnames=fields)
                     writer.writeheader()
 
