@@ -79,7 +79,7 @@ class CoverageMonitor(Node):
         if msg.state_changes:
             self.stats_updated = True
 
-            print("Tree: " + self.trees)
+            print("Tree: " , self.trees)
 
             for state_change in msg.state_changes:
 
@@ -101,10 +101,12 @@ def main(args=None):
                 writer = csv.DictWriter(csvfile, fieldnames=fields)
                 writer.writeheader()
 
-                for node in coverage_monitor.trees.values():
-                    writer.writerow({'uid': node.uid, 'node_registration_name': node.registration_name, \
-                        'node_instance_name': node.instance_name, 'num_visits': node.num_visits, 'num_failures': \
-                            node.num_failures, 'num_successes': node.num_successes, 'num_running': node.num_running, 'num_idle': node.num_idle})
+                for tree in coverage_monitor.trees.values():
+
+                    for node in tree.values():
+                        writer.writerow({'uid': node.uid, 'node_registration_name': node.registration_name, \
+                            'node_instance_name': node.instance_name, 'num_visits': node.num_visits, 'num_failures': \
+                                node.num_failures, 'num_successes': node.num_successes, 'num_running': node.num_running, 'num_idle': node.num_idle})
 
             coverage_monitor.stats_updated = False
 
