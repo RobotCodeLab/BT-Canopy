@@ -75,6 +75,8 @@ class CoverageMonitor(Node):
         if tree_key not in self.trees.keys():
             self.trees[tree_key] = {}
 
+            print("adding tree: " + tree_key)
+
             for TreeNode in msg.behavior_tree.nodes:
                 self.trees[tree_key][TreeNode.uid] \
                     = BTNode(TreeNode.uid, TreeNode.child_uids, TreeNode.type, TreeNode.instance_name, TreeNode.registration_name, TreeNode.params)
@@ -95,7 +97,7 @@ def main(args=None):
 
     while rclpy.ok():
         rclpy.spin_once(coverage_monitor)
-        
+
         for i, (tree_key, tree) in enumerate(coverage_monitor.trees.items()):
 
             if coverage_monitor.trees_changed[tree_key]:
