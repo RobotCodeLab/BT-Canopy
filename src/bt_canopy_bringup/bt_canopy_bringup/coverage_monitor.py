@@ -80,8 +80,7 @@ class CoverageMonitor(Node):
                     = BTNode(TreeNode.uid, TreeNode.child_uids, TreeNode.type, TreeNode.instance_name, TreeNode.registration_name, TreeNode.params)
         
         if msg.state_changes:
-            # self.stats_updated = True
-            # try:
+
             self.trees_changed[tree_key] = True
 
             for state_change in msg.state_changes:
@@ -90,12 +89,6 @@ class CoverageMonitor(Node):
 
                 self.trees[tree_key][state_change.uid].add_status_change_event(state_change.status.value) 
 
-            # except KeyError:
-            #     print("Error: node uid not found in tree\n")
-            #     print("Trees: ", self.trees)
-            #     print("\n")
-            #     print("  msg: ",msg.behavior_tree)
-            #     print("\n")
 
 def main(args=None):
     rclpy.init(args=args)
@@ -120,7 +113,7 @@ def main(args=None):
                             'node_instance_name': node.instance_name, 'num_visits': node.num_visits, 'num_failures': \
                                 node.num_failures, 'num_successes': node.num_successes, 'num_running': node.num_running, 'num_idle': node.num_idle})
 
-            coverage_monitor.stats_updated = False
+                coverage_monitor.trees_changed[tree_key] = False
 
     coverage_monitor.destroy_node()
     rclpy.shutdown()
