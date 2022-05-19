@@ -1,3 +1,4 @@
+from grpc import Status
 import rclpy
 from rclpy.node import Node
 
@@ -7,7 +8,7 @@ from tree_msgs.msg import NodeStatus
 
 import csv
 
-out_file = "node_coverage.csv"
+# out_file = "tree"
 fields = ['uid', 'node_registration_name',\
     'node_instance_name', 'num_visits', \
         'num_failures','num_successes',\
@@ -52,6 +53,7 @@ class CoverageMonitor(Node):
         super().__init__('coverage_monitor')
 
         self.trees = {}
+        self.trees_changed = {}
 
         self.got_tree_nodes = False
 
@@ -65,36 +67,36 @@ class CoverageMonitor(Node):
             'bt_status_change_log',
             self.log_callback,
             10)
-        self.subscription  # prevent unused variable warning
+        self.subscription  # prevent unused variable warning        
 
     def log_callback(self, msg: StatusChangeLog): 
 
-        if msg.behavior_tree.tree_name not in self.trees.keys():
-            self.trees[msg.behavior_tree.tree_name] = {}
+        tree_key = msg.behavior_tree.tree_name + '_' + msg.behavior_tree.nodes_hash
+
+        if tree_key not in self.trees.keys():
+            self.trees[tree_key] = {}
 
             for TreeNode in msg.behavior_tree.nodes:
-                self.trees[msg.behavior_tree.tree_name][TreeNode.uid] \
+                self.trees[tree_key][TreeNode.uid] \
                     = BTNode(TreeNode.uid, TreeNode.child_uids, TreeNode.type, TreeNode.instance_name, TreeNode.registration_name, TreeNode.params)
         
         if msg.state_changes:
-            self.stats_updated = True
+            # self.stats_updated = True
+            # try:
+            self.trees_changed[tree_key] = True
 
-            # print("Tree: " , self.trees)
+            for state_change in msg.state_changes:
 
-            try:
+                print("state change: ", state_change.uid,":", state_change.status)
 
-                for state_change in msg.state_changes:
+                self.trees[tree_key][state_change.uid].add_status_change_event(state_change.status.value) 
 
-                    print("state change: ", state_change.uid,":", state_change.status)
-
-                    self.trees[msg.behavior_tree.tree_name][state_change.uid].add_status_change_event(state_change.status.value) 
-
-            except KeyError:
-                print("Error: node uid not found in tree\n")
-                print("Trees: ", self.trees)
-                print("\n")
-                print("  msg: ",msg.behavior_tree)
-                print("\n")
+            # except KeyError:
+            #     print("Error: node uid not found in tree\n")
+            #     print("Trees: ", self.trees)
+            #     print("\n")
+            #     print("  msg: ",msg.behavior_tree)
+            #     print("\n")
 
 def main(args=None):
     rclpy.init(args=args)
@@ -104,13 +106,15 @@ def main(args=None):
     while rclpy.ok():
         rclpy.spin_once(coverage_monitor)
 
-        if coverage_monitor.stats_updated: # if new stats are available, write to file
+        # if coverage_monitor.stats_updated: # if new stats are available, write to file
 
-            with open(out_file, 'w') as csvfile:
-                writer = csv.DictWriter(csvfile, fieldnames=fields)
-                writer.writeheader()
+        for i, (tree_key, tree) in enumerate(coverage_monitor.trees.items()):
 
-                for tree in coverage_monitor.trees.values():
+            if coverage_monitor.trees_changed[tree_key]:
+
+                with open("tree_coverage_{tree_num}.csv".format(tree_num = i), 'w') as csvfile:
+                    writer = csv.DictWriter(csvfile, fieldnames=fields)
+                    writer.writeheader()
 
                     for node in tree.values():
                         writer.writerow({'uid': node.uid, 'node_registration_name': node.registration_name, \
