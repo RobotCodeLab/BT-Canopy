@@ -31,17 +31,17 @@ class BTNode():
         self.num_running = 0
         self.num_idle = 0
 
-    def add_status_change_event(self, current_status):  # current_status: IDLE, RUNNING, SUCCESS or FAILURE
+    def add_status_change_event(self, status):  # status: IDLE, RUNNING, SUCCESS or FAILURE
         
         self.num_visits += 1
         
-        if current_status == NodeStatus.IDLE:
+        if status == NodeStatus.IDLE:
             self.num_idle += 1
-        elif current_status == NodeStatus.RUNNING:
+        elif status == NodeStatus.RUNNING:
             self.num_running += 1
-        elif current_status == NodeStatus.SUCCESS:
+        elif status == NodeStatus.SUCCESS:
             self.num_successes += 1
-        elif current_status == NodeStatus.FAILURE:
+        elif status == NodeStatus.FAILURE:
             self.num_failures += 1
         else:
             print('Error: unknown status change event')
@@ -81,22 +81,9 @@ class CoverageMonitor(Node):
 
             for state_change in msg.state_changes:
 
-                self.trees[msg.behavior_tree.tree_name][state_change.uid].add_status_change_event(state_change.current_status.value) 
+                self.trees[msg.behavior_tree.tree_name][state_change.uid].add_status_change_event(state_change.status.value) 
             
             self.stats_updated = False
-
-    # def add_tree_nodes(self, tree_nodes):
-
-    #     for node in tree_nodes:
-            
-    #         node_uid = node.uid
-
-    #         if node_uid not in self.tree_stats.keys():
-    #             self.tree_stats[node_uid] = BTNode(node_uid, node.instance_name, node.registration_name, node.type, node.child_uids)
-    #         else:
-    #             self.tree_stats[node_uid].registration_name = node.registration_name
-    #             self.tree_stats[node_uid].type = node.type
-    #             self.tree_stats[node_uid].child_uids = node.child_uids
 
 def main(args=None):
     rclpy.init(args=args)
