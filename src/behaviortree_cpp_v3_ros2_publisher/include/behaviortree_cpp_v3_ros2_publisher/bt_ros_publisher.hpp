@@ -31,14 +31,24 @@ class BTRosPublisher : public BT::StatusChangeLogger
             status_change_log_pub_ = node->create_publisher<tree_msgs::msg::StatusChangeLog>(
                 "/bt_status_change_log", 10);
 
-            behavior_tree.root_uid = tree.rootNode()->UID();
+            
+            uid_offset = tree.rootNode()->UID();
+            // get the smallest node id
+            for(auto tree_node_ptr : tree.nodes){
+                BT::TreeNode * tree_node = tree_node_ptr.get();
+                if(tree_node->UID() < uid_offset){
+                    uid_offset = tree_node->UID();
+                }
+            }
+
+            behavior_tree.root_uid = tree.rootNode()->UID() - uid_offset;
             behavior_tree.tree_name = tree.rootNode()->name();
 
             for (auto tree_node_ptr : tree.nodes) {
                 BT::TreeNode * tree_node = tree_node_ptr.get();
                 tree_msgs::msg::TreeNode node_msg;
                 
-                node_msg.uid = tree_node->UID();
+                node_msg.uid = tree_node->UID() - uid_offset;
 
                 nodes_hash += "n";
 
@@ -67,24 +77,24 @@ class BTRosPublisher : public BT::StatusChangeLogger
                         break;
                 }
 
-                nodes_hash += std::to_string(tree_node->UID());
+                nodes_hash += std::to_string(tree_node->UID() - uid_offset);
 
                 if (auto control = dynamic_cast<const BT::ControlNode*>(tree_node))
                 {
                     for (const auto& child : control->children())
                     {
-                        node_msg.child_uids.push_back(child->UID());
+                        node_msg.child_uids.push_back(child->UID() - uid_offset);
 
                         nodes_hash += "c";
-                        nodes_hash += std::to_string(child->UID());
+                        nodes_hash += std::to_string(child->UID() - uid_offset);
 
                     }
                 } else if (auto decorator = dynamic_cast<const BT::DecoratorNode*>(tree_node))
                 {
-                    node_msg.child_uids.push_back(decorator->child()->UID());
+                    node_msg.child_uids.push_back(decorator->child()->UID() - uid_offset);
 
                     nodes_hash += "c";
-                    nodes_hash += std::to_string(decorator->child()->UID());
+                    nodes_hash += std::to_string(decorator->child()->UID() - uid_offset);
                 }
 
                 node_msg.instance_name = tree_node->name();
@@ -106,7 +116,7 @@ class BTRosPublisher : public BT::StatusChangeLogger
             tree_msgs::msg::StatusChange event;
 
             event.timestamp = tf2_ros::toMsg(tf2::TimePoint(timestamp));
-            event.uid = node.UID();
+            event.uid = node.UID() - uid_offset;
 
             event.prev_status.value = static_cast<int>(prev_status);
             event.status.value = static_cast<int>(status);
@@ -137,7 +147,7 @@ class BTRosPublisher : public BT::StatusChangeLogger
         std::vector<BT::TreeNode::Ptr> tree_nodes_;
         BT::TreeNode * root_node_;
         tree_msgs::msg::BehaviorTree  behavior_tree;
-    
+        u_int16_t uid_offset;
 };
 
 #endif // BT_ROS_PUBLISHER_HPP

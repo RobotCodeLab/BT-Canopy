@@ -85,8 +85,6 @@ class CoverageMonitor(Node):
 
             for state_change in msg.state_changes:
 
-                print("state change: ", state_change.uid,":", state_change.status)
-
                 self.trees[tree_key][state_change.uid].add_status_change_event(state_change.status.value) 
 
 
@@ -97,9 +95,7 @@ def main(args=None):
 
     while rclpy.ok():
         rclpy.spin_once(coverage_monitor)
-
-        # if coverage_monitor.stats_updated: # if new stats are available, write to file
-
+        
         for i, (tree_key, tree) in enumerate(coverage_monitor.trees.items()):
 
             if coverage_monitor.trees_changed[tree_key]:
