@@ -78,80 +78,21 @@ class BTRosPublisher : public BT::StatusChangeLogger
 
     public:
 
+        // if tree_uid provided
         BTRosPublisher(const rclcpp::Node::WeakPtr & ros_node, const BT::Tree & tree, const std::string & tree_uid)
         : StatusChangeLogger(tree.rootNode())
         {
-            // auto node = ros_node.lock();
-            // clock_ = node->get_clock();
-
-            // tree_nodes_ = tree.nodes; 
-
-            // tree_name = tree.rootNode()->name();
-            // status_change_log_pub_ = node->create_publisher<tree_msgs::msg::StatusChangeLog>(
-            //     "/bt_status_change_log", 10);
-
-            // behavior_tree.root_uid = tree.rootNode()->UID();
-            // behavior_tree.tree_uid = tree_uid;
-
-            // for (auto tree_node_ptr : tree.nodes) {
-            //     BT::TreeNode * tree_node = tree_node_ptr.get();
-            //     tree_msgs::msg::TreeNode node_msg;
-                
-            //     node_msg.uid = tree_node->UID();
-
-            //     switch(tree_node->type()){
-            //         case BT::NodeType::UNDEFINED:
-            //             node_msg.type = node_msg.UNDEFINED;
-            //             break;
-            //         case BT::NodeType::ACTION:
-            //             node_msg.type = node_msg.ACTION;
-            //             break;
-            //         case BT::NodeType::CONDITION:
-            //             node_msg.type = node_msg.CONDITION;
-            //             break;
-            //         case BT::NodeType::CONTROL:
-            //             node_msg.type = node_msg.DECORATOR;
-            //             break;
-            //         case BT::NodeType::SUBTREE:
-            //             node_msg.type = node_msg.SUBTREE;
-            //             break;
-            //         default:
-            //             break;
-            //     }
-
-
-            //     if (auto control = dynamic_cast<const BT::ControlNode*>(tree_node))
-            //     {
-            //         for (const auto& child : control->children())
-            //         {
-            //             node_msg.child_uids.push_back(child->UID() );
-
-            //         }
-            //     } else if (auto decorator = dynamic_cast<const BT::DecoratorNode*>(tree_node))
-            //     {
-            //         node_msg.child_uids.push_back(decorator->child()->UID());
-
-            //     }
-
-            //     node_msg.instance_name = tree_node->name();
-            //     node_msg.registration_name = tree_node->registrationName();
-
-            //     behavior_tree.nodes.push_back(node_msg);
-            // }
-
-            init(ros_node, tree, tree_uid);
-            
+            init(ros_node, tree, tree_uid);   
         }  
 
+        // else if tree_uid not provided create tree shape hash
         BTRosPublisher(const rclcpp::Node::WeakPtr & ros_node, const BT::Tree & tree)
         : StatusChangeLogger(tree.rootNode()){
 
             BT::TreeNode * root_node_ = tree.rootNode();
-            
-            // std::string tree_shape_uid = new std::string();
+
             std::string tree_shape_uid = "";
 
-            // It would seem this isn't actually updating the tree_shape_uid
             BT::applyRecursiveVisitor(
                 root_node_,
                 [&tree_shape_uid](BT::TreeNode * node) {
@@ -160,10 +101,6 @@ class BTRosPublisher : public BT::StatusChangeLogger
                     tree_shape_uid += node->name();
                     tree_shape_uid += "-";
 
-                    // tree_shape_uid->append( std::to_string(node->UID()));
-
-                    // tree_shape_uid->append(node->name());
-                    // tree_shape_uid->append("-");
                 }
             );
 
@@ -180,7 +117,6 @@ class BTRosPublisher : public BT::StatusChangeLogger
 
             init(ros_node, tree, tree_shape_uid);
 
-            // BTRosPublisher(ros_node, tree, tree_shape_uid);
         }
 
 
