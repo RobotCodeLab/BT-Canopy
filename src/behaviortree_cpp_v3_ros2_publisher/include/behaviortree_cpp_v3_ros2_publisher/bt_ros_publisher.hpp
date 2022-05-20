@@ -85,24 +85,33 @@ class BTRosPublisher : public BT::StatusChangeLogger
 
             BT::TreeNode * root_node_ = tree.rootNode();
             
-            std::string tree_shape_uid = "";
+            std::string * tree_shape_uid = new std::string();
 
             // It would seem this isn't actually updating the tree_shape_uid
             BT::applyRecursiveVisitor(
                 root_node_,
-                [&tree_shape_uid](BT::TreeNode * node) {
-                    tree_shape_uid += node->UID();
-                    tree_shape_uid += node->name();
-                    tree_shape_uid += "-";
+                [tree_shape_uid](BT::TreeNode * node) {
+                        
+                    // tree_shape_uid += node->UID();
+                    // tree_shape_uid += node->name();
+                    // tree_shape_uid += "-";
+
+                    tree_shape_uid->append( std::to_string(node->UID()));
+
+                    tree_shape_uid->append(node->name());
+                    tree_shape_uid->append("-");
                 }
             );
 
             // empty tree shape uid is not allowed
-            if (tree_shape_uid.empty())
+            if (tree_shape_uid->empty())
             {
-                tree_shape_uid = "empty_tree_shape_uid";
+                tree_shape_uid->append("empty_tree_shape");
             }
-            BTRosPublisher(ros_node, tree, tree_shape_uid);
+
+            BTRosPublisher(ros_node, tree, *tree_shape_uid);
+
+            // BTRosPublisher(ros_node, tree, tree_shape_uid);
         }
 
 
