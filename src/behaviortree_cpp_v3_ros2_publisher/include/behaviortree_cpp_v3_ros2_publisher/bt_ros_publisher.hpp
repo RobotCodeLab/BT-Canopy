@@ -15,11 +15,8 @@
 class BTRosPublisher : public BT::StatusChangeLogger
 {
 
-    public:
-
-        BTRosPublisher(const rclcpp::Node::WeakPtr & ros_node, const BT::Tree & tree, const std::string & tree_uid)
-        : StatusChangeLogger(tree.rootNode())
-        {
+    private: 
+        void init(const rclcpp::Node::WeakPtr & ros_node, const BT::Tree & tree, const std::string & tree_uid){
             auto node = ros_node.lock();
             clock_ = node->get_clock();
 
@@ -77,6 +74,72 @@ class BTRosPublisher : public BT::StatusChangeLogger
 
                 behavior_tree.nodes.push_back(node_msg);
             }
+        }
+
+    public:
+
+        BTRosPublisher(const rclcpp::Node::WeakPtr & ros_node, const BT::Tree & tree, const std::string & tree_uid)
+        : StatusChangeLogger(tree.rootNode())
+        {
+            // auto node = ros_node.lock();
+            // clock_ = node->get_clock();
+
+            // tree_nodes_ = tree.nodes; 
+
+            // tree_name = tree.rootNode()->name();
+            // status_change_log_pub_ = node->create_publisher<tree_msgs::msg::StatusChangeLog>(
+            //     "/bt_status_change_log", 10);
+
+            // behavior_tree.root_uid = tree.rootNode()->UID();
+            // behavior_tree.tree_uid = tree_uid;
+
+            // for (auto tree_node_ptr : tree.nodes) {
+            //     BT::TreeNode * tree_node = tree_node_ptr.get();
+            //     tree_msgs::msg::TreeNode node_msg;
+                
+            //     node_msg.uid = tree_node->UID();
+
+            //     switch(tree_node->type()){
+            //         case BT::NodeType::UNDEFINED:
+            //             node_msg.type = node_msg.UNDEFINED;
+            //             break;
+            //         case BT::NodeType::ACTION:
+            //             node_msg.type = node_msg.ACTION;
+            //             break;
+            //         case BT::NodeType::CONDITION:
+            //             node_msg.type = node_msg.CONDITION;
+            //             break;
+            //         case BT::NodeType::CONTROL:
+            //             node_msg.type = node_msg.DECORATOR;
+            //             break;
+            //         case BT::NodeType::SUBTREE:
+            //             node_msg.type = node_msg.SUBTREE;
+            //             break;
+            //         default:
+            //             break;
+            //     }
+
+
+            //     if (auto control = dynamic_cast<const BT::ControlNode*>(tree_node))
+            //     {
+            //         for (const auto& child : control->children())
+            //         {
+            //             node_msg.child_uids.push_back(child->UID() );
+
+            //         }
+            //     } else if (auto decorator = dynamic_cast<const BT::DecoratorNode*>(tree_node))
+            //     {
+            //         node_msg.child_uids.push_back(decorator->child()->UID());
+
+            //     }
+
+            //     node_msg.instance_name = tree_node->name();
+            //     node_msg.registration_name = tree_node->registrationName();
+
+            //     behavior_tree.nodes.push_back(node_msg);
+            // }
+
+            init(ros_node, tree, tree_uid);
             
         }  
 
@@ -109,7 +172,9 @@ class BTRosPublisher : public BT::StatusChangeLogger
                 tree_shape_uid->append("empty_tree_shape");
             }
 
-            BTRosPublisher(ros_node, tree, *tree_shape_uid);
+            // BTRosPublisher(ros_node, tree, *tree_shape_uid);
+
+            init(ros_node, tree, *tree_shape_uid);
 
             // BTRosPublisher(ros_node, tree, tree_shape_uid);
         }
