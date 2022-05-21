@@ -2,7 +2,6 @@ import rclpy
 from rclpy.node import Node
 
 from tree_msgs.msg import StatusChangeLog
-# from tree_msgs.msg import TreeNode
 from tree_msgs.msg import NodeStatus
 
 import csv
