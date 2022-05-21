@@ -8,7 +8,6 @@ from pathlib import Path
 import csv
 import re
 
-# out_file = "tree"
 fields = ['uid', 'node_registration_name',\
     'node_instance_name', 'num_visits', \
         'num_failures','num_successes',\
@@ -129,8 +128,6 @@ class CoverageMonitor(Node):
 
             self.write_tree_stats(tree_uid)
 
-
-
 def main(args=None):
     rclpy.init(args=args)
 
@@ -138,22 +135,6 @@ def main(args=None):
 
     while rclpy.ok():
         rclpy.spin_once(coverage_monitor)
-
-        # for tree_uid, tree in coverage_monitor.trees.items():
-
-        #     if coverage_monitor.trees_changed[tree_uid]:
-
-        #         with open(coverage_monitor.trees_out_file[tree_uid], 'w') as csvfile:
-        #             writer = csv.DictWriter(csvfile, fieldnames=fields)
-        #             writer.writeheader()
-
-        #             for node in tree.values():
-        #                 writer.writerow({'uid': node.uid, 'node_registration_name': node.registration_name, \
-        #                     'node_instance_name': node.instance_name, 'num_visits': node.num_visits, 'num_failures': \
-        #                         node.num_failures, 'num_successes': node.num_successes, 'num_running': node.num_running, \
-        #                              'num_idle': node.num_idle})
-
-        #         coverage_monitor.trees_changed[tree_uid] = False
 
     coverage_monitor.destroy_node()
     rclpy.shutdown()
