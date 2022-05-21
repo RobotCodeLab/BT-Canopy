@@ -143,7 +143,7 @@ class CustomWatcher(py_trees_ros.trees.Watcher):
                     node=self.node,
                     service_type=self.service_type_strings[service_name],
                     namespace=self.namespace_hint,
-                    timeout=py_trees.common.Duration.INFINITE.value
+                    timeout=2147483647
                 )
 
                 print("getting service name", service_name)
