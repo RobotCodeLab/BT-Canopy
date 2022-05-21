@@ -23,7 +23,7 @@ import py_trees_ros
 .. argparse::
    :module: py_trees_ros.programs.tree_watcher
    :func: command_line_argument_parser
-   :prog: py-trees-tree-watcher
+   :prog: py-trees-tree-publisher
 
 Command line utility that introspects on a running
 :class:`~py_trees_ros.trees.BehaviourTree` instance over it's snapshot
@@ -278,7 +278,7 @@ def description(formatted_for_sphinx):
         "-a": "open a snapshot stream and include blackboard access details (activity)",
         "-s": "open a snapshot stream and include timing statistics",
     }
-    script_name = "py-trees-tree-watcher"
+    script_name = "py-trees-tree-publisher"
 
     if formatted_for_sphinx:
         # for sphinx documentation (doesn't like raw text)

@@ -20,6 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'py-trees-tree-publisher = py_trees_ros_publisher.topic_publisher:main'
         ],
     },
 )
