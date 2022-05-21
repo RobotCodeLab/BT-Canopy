@@ -53,13 +53,164 @@ import sys
 from py_trees_ros import conversions
 from py_trees_ros.trees import SnapshotStream
 from py_trees_ros.trees import WatcherMode
+from py_trees_ros import utilities
+from py_trees_ros import exceptions
+
+import py_trees_ros_interfaces.msg as py_trees_msgs  # noqa
+import py_trees_ros_interfaces.srv as py_trees_srvs  # noqa
+
+import time
+
 import unique_identifier_msgs.msg as unique_identifier_msgs
 import math
 
 class CustomWatcher(py_trees_ros.trees.Watcher):
 
-    def __init__(self, topic_name: str = None, namespace_hint: str = None, parameters: SnapshotStream.Parameters = None, statistics: bool = False, mode: WatcherMode = ...):
-        super().__init__(topic_name, namespace_hint, parameters, statistics, mode)
+    """
+    The tree watcher sits on the other side of a running
+    :class:`~py_trees_ros.trees.BehaviourTree` and is a useful mechanism for
+    quick introspection of it's current state.
+    Args:
+    topic_name: location of the snapshot stream (optional)
+    namespace_hint: refine search for snapshot stream services if there is more than one tree (optional)
+    parameters: snapshot stream configuration controlling both on-the-fly stream creation and display
+    statistics: display statistics
+    .. seealso:: :mod:`py_trees_ros.programs.tree_watcher`
+    """
+
+    def __init__(
+        self,
+        topic_name: str=None,
+        namespace_hint: str=None,
+        parameters: SnapshotStream.Parameters=None,
+        statistics: bool=False,
+        mode: WatcherMode=WatcherMode.SNAPSHOTS
+    ):
+        self.topic_name = topic_name
+        self.namespace_hint = namespace_hint
+
+        self.mode = mode
+        self.parameters = parameters if parameters is not None else SnapshotStream.Parameters()
+        self.statistics = statistics
+
+        self.subscriber = None
+        self.snapshot_visitor = py_trees.visitors.SnapshotVisitor()
+        self.done = False
+        self.xdot_process = None
+        self.rendered = None
+
+        self.services = {
+            'open': None,
+            'close': None
+        }
+
+        self.service_names = {
+            'open': None,
+            'close': None
+        }
+        self.service_type_strings = {
+            'open': 'py_trees_ros_interfaces/srv/OpenSnapshotStream',
+            'close': 'py_trees_ros_interfaces/srv/CloseSnapshotStream'
+        }
+        self.service_types = {
+            'open': py_trees_srvs.OpenSnapshotStream,
+            'close': py_trees_srvs.CloseSnapshotStream
+        }
+
+    def setup(self, timeout_sec: float):
+        """
+        Creates the node and checks that all of the server-side services are available
+        for calling on to open a connection.
+        Args:
+            timeout_sec: time (s) to wait (use common.Duration.INFINITE to block indefinitely)
+        Raises:
+            :class:`~py_trees_ros.exceptions.NotFoundError`: if services/topics were not found
+            :class:`~py_trees_ros.exceptions.MultipleFoundError`: if multiple services were found
+            :class:`~py_trees_ros.exceptions.TimedOutError`: if service clients time out waiting for the server
+        """
+        self.node = rclpy.create_node(
+            node_name=utilities.create_anonymous_node_name(node_name='tree_watcher'),
+            start_parameter_services=False
+        )
+        # open a snapshot stream
+        if self.topic_name is None:
+            # discover actual service names
+            for service_name in self.service_names.keys():
+                # can raise NotFoundError and MultipleFoundError
+
+
+                self.service_names[service_name] = utilities.find_service(
+                    node=self.node,
+                    service_type=self.service_type_strings[service_name],
+                    namespace=self.namespace_hint,
+                    timeout=math.inf
+                )
+
+                print("getting service name", service_name)
+
+
+            # create service clients
+            self.services["open"] = self.create_service_client(key="open")
+            self.services["close"] = self.create_service_client(key="close")
+            # request a stream
+            request = self.service_types["open"].Request()
+            request.parameters.blackboard_data = self.parameters.blackboard_data
+            request.parameters.blackboard_activity = self.parameters.blackboard_activity
+            request.parameters.snapshot_period = self.parameters.snapshot_period
+            future = self.services["open"].call_async(request)
+            rclpy.spin_until_future_complete(self.node, future)
+            response = future.result()
+            self.topic_name = response.topic_name
+        # connect to a snapshot stream
+        start_time = time.monotonic()
+        while True:
+            elapsed_time = time.monotonic() - start_time
+            if elapsed_time > timeout_sec:
+                raise exceptions.TimedOutError("timed out waiting for a snapshot stream publisher [{}]".format(self.topic_name))
+            if self.node.count_publishers(self.topic_name) > 0:
+                break
+            time.sleep(0.1)
+        self.subscriber = self.node.create_subscription(
+            msg_type=py_trees_msgs.BehaviourTree,
+            topic=self.topic_name,
+            callback=self.callback_snapshot,
+            qos_profile=utilities.qos_profile_latched()
+        )
+
+    def shutdown(self):
+        if self.services["close"] is not None:
+            request = self.service_types["close"].Request()
+            request.topic_name = self.topic_name
+            future = self.services["close"].call_async(request)
+            rclpy.spin_until_future_complete(self.node, future)
+            unused_response = future.result()
+        self.node.destroy_node()
+
+    def create_service_client(self, key: str):
+        """
+        Convenience api for opening a service client and waiting for the service to appear.
+        Args:
+            key: one of 'open', 'close'.
+        Raises:
+            :class:`~py_trees_ros.exceptions.NotReadyError`: if setup() wasn't called to identify the relevant services to connect to.
+            :class:`~py_trees_ros.exceptions.TimedOutError`: if it times out waiting for the server
+        """
+        if self.service_names[key] is None:
+            raise exceptions.NotReadyError(
+                "no known '{}' service known [did you call setup()?]".format(self.service_types[key])
+            )
+        client = self.node.create_client(
+            srv_type=self.service_types[key],
+            srv_name=self.service_names[key],
+            qos_profile=rclpy.qos.qos_profile_services_default
+        )
+        # hardcoding timeouts will get us into trouble
+        if not client.wait_for_service(timeout_sec=3.0):
+            raise exceptions.TimedOutError(
+                "timed out waiting for {}".format(self.service_names['close'])
+            )
+        return client
+        
 
     def callback_snapshot(self, msg):
         """
