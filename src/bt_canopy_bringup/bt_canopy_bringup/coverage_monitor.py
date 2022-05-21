@@ -93,6 +93,18 @@ class CoverageMonitor(Node):
 
         return out_file
 
+    def write_tree_stats(self, tree_uid):
+        with open(self.trees_out_file[tree_uid], 'w') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fields)
+            writer.writeheader()
+
+            for node in self.trees[tree_uid].values():
+
+                writer.writerow({'uid': node.uid, 'node_registration_name': node.registration_name, \
+                    'node_instance_name': node.instance_name, 'num_visits': node.num_visits, 'num_failures': \
+                        node.num_failures, 'num_successes': node.num_successes, 'num_running': node.num_running, \
+                            'num_idle': node.num_idle})
+
     def log_callback(self, msg: StatusChangeLog): 
 
         tree_uid = msg.behavior_tree.tree_uid
@@ -115,6 +127,9 @@ class CoverageMonitor(Node):
 
                 self.trees[tree_uid][state_change.uid].add_status_change_event(state_change.status.value) 
 
+            self.write_tree_stats(tree_uid)
+
+
 
 def main(args=None):
     rclpy.init(args=args)
@@ -124,21 +139,21 @@ def main(args=None):
     while rclpy.ok():
         rclpy.spin_once(coverage_monitor)
 
-        for tree_uid, tree in coverage_monitor.trees.items():
+        # for tree_uid, tree in coverage_monitor.trees.items():
 
-            if coverage_monitor.trees_changed[tree_uid]:
+        #     if coverage_monitor.trees_changed[tree_uid]:
 
-                with open(coverage_monitor.trees_out_file[tree_uid], 'w') as csvfile:
-                    writer = csv.DictWriter(csvfile, fieldnames=fields)
-                    writer.writeheader()
+        #         with open(coverage_monitor.trees_out_file[tree_uid], 'w') as csvfile:
+        #             writer = csv.DictWriter(csvfile, fieldnames=fields)
+        #             writer.writeheader()
 
-                    for node in tree.values():
-                        writer.writerow({'uid': node.uid, 'node_registration_name': node.registration_name, \
-                            'node_instance_name': node.instance_name, 'num_visits': node.num_visits, 'num_failures': \
-                                node.num_failures, 'num_successes': node.num_successes, 'num_running': node.num_running, \
-                                     'num_idle': node.num_idle})
+        #             for node in tree.values():
+        #                 writer.writerow({'uid': node.uid, 'node_registration_name': node.registration_name, \
+        #                     'node_instance_name': node.instance_name, 'num_visits': node.num_visits, 'num_failures': \
+        #                         node.num_failures, 'num_successes': node.num_successes, 'num_running': node.num_running, \
+        #                              'num_idle': node.num_idle})
 
-                coverage_monitor.trees_changed[tree_uid] = False
+        #         coverage_monitor.trees_changed[tree_uid] = False
 
     coverage_monitor.destroy_node()
     rclpy.shutdown()
