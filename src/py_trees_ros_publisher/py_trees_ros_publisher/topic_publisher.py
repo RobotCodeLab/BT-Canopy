@@ -4,7 +4,6 @@ from rclpy.node import Node
 from tree_msgs.msg import StatusChangeLog
 from tree_msgs.msg import NodeStatus
 
-# from py_trees_ros_interfaces.msg import BehaviourTree
 import py_trees_ros_interfaces.msg as py_trees_msgs  # noqa
 import py_trees_ros_interfaces.srv as py_trees_srvs  # noqa
 
