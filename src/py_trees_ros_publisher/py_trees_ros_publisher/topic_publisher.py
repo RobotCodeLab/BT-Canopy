@@ -246,10 +246,21 @@ def main(args=None):
 
     republisher = TopicPublisher()
 
-    while rclpy.ok():
-        rclpy.spin_once(republisher, timeout_sec=1) # timeout is how often to run tree_discovery (also handles removing deleted trees)
-        republisher.tree_discovery()
+    try: 
 
-    republisher.destroy_node()
-    republisher.shutdown()
-    rclpy.shutdown()
+
+        while rclpy.ok():
+            rclpy.spin_once(republisher, timeout_sec=1) # timeout is how often to run tree_discovery (also handles removing deleted trees)
+            republisher.tree_discovery()
+
+    except KeyboardInterrupt:
+        pass
+    except BaseException:
+        raise
+    finally:
+        republisher.shutdown()
+        republisher.destroy_node()
+        rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()

@@ -128,16 +128,50 @@ class CoverageMonitor(Node):
 
             self.write_tree_stats(tree_uid)
 
+    def print_final_stats(self):
+        print('\nFinal stats:')
+        for tree_uid in self.trees.keys():
+            print('\nTree:', tree_uid)
+
+            total_coverage = 0
+
+            for node in self.trees[tree_uid].values():
+
+                node_coverage = 0
+
+                if node.num_successes > 0 and node.num_failures > 0:
+                    node_coverage += 100
+                elif node.num_successes > 0 or node.num_failures > 0:
+                    node_coverage += 50
+                else:
+                    node_coverage += 0
+                total_coverage += node_coverage
+                    
+                print('\t', str(node.instance_name).ljust(15), ':', str(node.num_visits).ljust(4), 'visits |', str(node.num_failures).ljust(4), 'failures |', \
+                    str(node.num_successes).ljust(4), 'successes |', str(node.num_running).ljust(4), 'running |', str(node.num_idle).ljust(4), 'idle |', str(node_coverage).ljust(3), '% coverage |')
+
+            total_coverage /= len(self.trees[tree_uid])
+
+            print('\n\tTotal coverage:', total_coverage, '%', '\n')
+
+
 def main(args=None):
     rclpy.init(args=args)
 
     coverage_monitor = CoverageMonitor()
 
-    while rclpy.ok():
-        rclpy.spin_once(coverage_monitor)
+    try:
+        rclpy.spin(coverage_monitor)
+    except KeyboardInterrupt:
+        coverage_monitor.print_final_stats()
+        pass
+    except BaseException:
+        raise
 
-    coverage_monitor.destroy_node()
-    rclpy.shutdown()
+    finally:
+
+        coverage_monitor.destroy_node()
+        rclpy.shutdown()
 
 if __name__ == '__main__':
     main()
