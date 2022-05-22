@@ -1,4 +1,4 @@
-uint16 uid
+uint32 uid
 NodeStatus prev_status
 NodeStatus status
 builtin_interfaces/Time timestamp

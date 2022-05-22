@@ -1,3 +1,3 @@
 string tree_uid
-uint16 root_uid
+uint32 root_uid
 TreeNode[] nodes
