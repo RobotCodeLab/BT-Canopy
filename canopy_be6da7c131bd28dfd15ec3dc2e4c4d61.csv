@@ -1,8 +1,0 @@
-uid,node_registration_name,node_instance_name,num_visits,num_failures,num_successes,num_running,num_idle
-3808670487,py_trees_ros.battery.ToBlackboard,Battery2BB,4,0,4,0,0
-3294223556,py_trees.composites.Sequence,Topics2BB,4,0,4,0,0
-2025863148,py_trees_ros_tutorials.behaviours.FlashLedStrip,FlashLEDs,2,0,0,2,0
-3315655246,py_trees.decorators.EternalGuard,Battery Low?,4,2,0,2,0
-1848347470,py_trees.meta.Running,Idle,2,0,0,2,0
-2771509312,py_trees.composites.Selector,Tasks,4,0,0,4,0
-3915531982,py_trees.composites.Parallel,Tutorial Two,4,0,0,4,0
