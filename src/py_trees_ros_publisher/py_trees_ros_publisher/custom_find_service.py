@@ -40,7 +40,6 @@ def find_service(node: rclpy.node.Node,
             break
         time.sleep(loop_period)
 
-
     if not service_names:
         raise exceptions.NotFoundError("service not found [type: {}]".format(service_type))
     elif len(service_names) == 1:
