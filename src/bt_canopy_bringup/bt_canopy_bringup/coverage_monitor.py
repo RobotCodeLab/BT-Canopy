@@ -171,7 +171,7 @@ class CoverageMonitor(Node):
 
             total_coverage = 0
 
-            print ('\n{:<{name_just}} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}'.format('Node','Type','Visits', 'Failures', 'Successes', 'Running', 'Idle', 'Coverage %'))
+            print ('\n{:<{name_just}} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}'.format('Node','Type','Visits', 'Failures', 'Successes', 'Running', 'Idle', 'Coverage %', name_just=name_just))
 
             for node in self.trees[tree_uid].values():
 
@@ -185,7 +185,7 @@ class CoverageMonitor(Node):
                     node_coverage += 0
                 total_coverage += node_coverage
 
-                print('\t{:<{name_just}} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}'.format(node.instance_name, node.type, node.num_visits, node.num_failures, node.num_successes, node.num_running, node.num_idle, node_coverage))
+                print('\t{:<{name_just}} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}'.format(node.instance_name, node.type, node.num_visits, node.num_failures, node.num_successes, node.num_running, node.num_idle, node_coverage, name_just=name_just))
 
             total_coverage /= len(self.trees[tree_uid])
 
