@@ -9,10 +9,26 @@ import csv
 import re
 from datetime import datetime
 
-fields = ['uid', 'node_registration_name',\
+fields = ['uid', 'node_type' ,'node_registration_name',\
     'node_instance_name', 'num_visits', \
         'num_failures','num_successes',\
              'num_running','num_idle']
+
+def node_type(int_value):
+    if int_value == 0:
+        return 'Undefined'
+    elif int_value == 1:
+        return 'Action'
+    elif int_value == 2:
+        return 'Condition'
+    elif int_value == 3:
+        return 'Control'
+    elif int_value == 4:
+        return 'Decorator'
+    elif int_value == 5:
+        return 'Subtree'
+    else:
+        return 'Unknown'
 
 class BTNode():
         
@@ -23,14 +39,14 @@ class BTNode():
         self.instance_name = instance_name
         self.registration_name = registration_name
         self.params = params
-        
-        
 
         self.num_visits = 0
         self.num_failures = 0
         self.num_successes = 0
         self.num_running = 0
         self.num_idle = 0
+
+
 
     def add_status_change_event(self, status):  # status: IDLE, RUNNING, SUCCESS or FAILURE
         
@@ -111,7 +127,7 @@ class CoverageMonitor(Node):
             for node in self.trees[tree_uid].values():
 
                 writer.writerow({'uid': node.uid, 'node_registration_name': node.registration_name, \
-                    'node_instance_name': node.instance_name, 'num_visits': node.num_visits, 'num_failures': \
+                    'node_instance_name': node.instance_name, 'node_type': node.type,  'num_visits': node.num_visits, 'num_failures': \
                         node.num_failures, 'num_successes': node.num_successes, 'num_running': node.num_running, \
                             'num_idle': node.num_idle})
 
@@ -124,7 +140,7 @@ class CoverageMonitor(Node):
 
             for TreeNode in msg.behavior_tree.nodes:
                 self.trees[tree_uid][TreeNode.uid] \
-                    = BTNode(TreeNode.uid, TreeNode.child_uids, TreeNode.type, TreeNode.instance_name, \
+                    = BTNode(TreeNode.uid, TreeNode.child_uids, node_type( TreeNode.type), TreeNode.instance_name, \
                         TreeNode.registration_name, TreeNode.params)
         
             self.trees_out_file[tree_uid] = self._format_out_file(tree_uid) 
@@ -140,9 +156,18 @@ class CoverageMonitor(Node):
             self.write_tree_stats(tree_uid)
 
     def print_final_stats(self):
+
+        
+
         print('\nFinal stats:')
         for tree_uid in self.trees.keys():
-            print('\nTree:', tree_uid)
+
+            # get the length of the longest node.instance_name
+
+            name_just = max([len(node.instance_name) for node in self.trees[tree_uid].values()])
+
+            print('\nTree uid :', tree_uid)
+            print('\nTree path:', self.trees_out_file[tree_uid])
 
             total_coverage = 0
 
@@ -158,7 +183,7 @@ class CoverageMonitor(Node):
                     node_coverage += 0
                 total_coverage += node_coverage
                     
-                print('\t', str(node.instance_name).ljust(15), ':', str(node.num_visits).ljust(4), 'visits |', str(node.num_failures).ljust(4), 'failures |', \
+                print('\t', str(node.instance_name).ljust(name_just), ':', str(node.num_visits).ljust(4), 'visits |', str(node.num_failures).ljust(4), 'failures |', \
                     str(node.num_successes).ljust(4), 'successes |', str(node.num_running).ljust(4), 'running |', str(node.num_idle).ljust(4), 'idle |', str(node_coverage).ljust(3), '% coverage |')
 
             total_coverage /= len(self.trees[tree_uid])
