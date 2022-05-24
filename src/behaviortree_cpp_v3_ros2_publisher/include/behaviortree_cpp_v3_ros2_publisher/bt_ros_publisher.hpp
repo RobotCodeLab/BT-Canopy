@@ -104,16 +104,19 @@ class BTRosPublisher : public BT::StatusChangeLogger
                 }
             );
 
-            if (tree_shape_uid.size() > 100){
-                // get the hash of the tree shape uid so that the string is not too long
-                std::hash<std::string> hash_fn;
-                tree_shape_uid = std::to_string( hash_fn(tree_shape_uid));
+            if(tree_shape_uid.empty())
+            {
+                throw std::runtime_error("Tree is empty");
             }
 
-            else if(tree_shape_uid.empty())
-            {
-                tree_shape_uid = "empty_tree";
-            }
+            std::hash<std::string> hash_fn;
+            tree_shape_uid = std::to_string( hash_fn(tree_shape_uid));
+
+            // Only get the first 31 characters of the hash (It will probably be shorter)
+            tree_shape_uid = tree_shape_uid.substr(0, 31);
+
+            // prepend '#' to the front of the tree_shape_uid to indicate that it's a hash
+            tree_shape_uid.insert(tree_shape_uid.begin(), '#');
 
             init(ros_node, tree, tree_shape_uid);
 

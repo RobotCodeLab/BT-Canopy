@@ -7,6 +7,7 @@ from tree_msgs.msg import NodeStatus
 from pathlib import Path
 import csv
 import re
+from datetime import datetime
 
 fields = ['uid', 'node_registration_name',\
     'node_instance_name', 'num_visits', \
@@ -74,21 +75,31 @@ class CoverageMonitor(Node):
     # Map the tree UID to a shorter file name
     def _format_out_file(self, tree_uid):
 
-        stem = Path(tree_uid).stem
+        # if first character is a '#', then tree_uid is an ID number.
 
-        stem = re.sub('[^\w_.)( -]', '-', stem)
+        if tree_uid[0] == '#':
 
-        if len(stem) > 128:
-            stem = stem[:128]
+            # if uid is a number, set the file name to the current date and time
+            out_file = 'canopy_' + str(datetime.now().strftime('%Y-%m-%d_%H-%M-%S')) + '.csv'
 
-        out_file = 'canopy_' + stem + '.csv'
+        else:
 
-        # If file name already exists for a different tree_uid, 
-        # append a number to the end until a unique name is found
-        i = 1
-        while out_file in self.trees_out_file.items():
-            out_file = 'canopy_' + stem + '_' + str(i) + '.csv'
-            i += 1
+            stem = Path(tree_uid).stem
+
+            stem = re.sub('[^\w_.)( -]', '-', stem)
+
+            if len(stem) > 128:
+                stem = stem[:128]
+
+            out_file = 'canopy_' + stem + '.csv'
+
+            # If file name already exists for a different tree_uid, 
+            # append a number to the end until a unique name is found
+            i = 1
+
+            while out_file in self.trees_out_file.items():
+                out_file = 'canopy_' + stem + '_' + str(i) + '.csv'
+                i += 1
 
         return out_file
 

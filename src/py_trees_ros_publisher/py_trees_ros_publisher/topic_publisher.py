@@ -125,7 +125,6 @@ class TopicPublisher(Node):
             self.previous_status[stream_topic_name] = {}
 
         canopy_tree_msg = BehaviorTree()
-
         status_change_log_msg = StatusChangeLog()
 
         tree_shape_uid = ""
@@ -143,6 +142,7 @@ class TopicPublisher(Node):
                 status_change_msg.uid = tree_node.uid
                 status_change_msg.prev_status = self.previous_status[stream_topic_name].get(tree_node.uid, NodeStatus(value=0))
                 status_change_msg.status.value = behavior.status - 1
+                status_change_msg.timestamp = msg.statistics.stamp
 
                 # add the current status to the previous status
                 self.previous_status[stream_topic_name][tree_node.uid] = status_change_msg.status
@@ -178,9 +178,9 @@ class TopicPublisher(Node):
             tree_shape_uid += str(tree_node.instance_name)
             tree_shape_uid += "-"
 
-        tree_shape_uid = hashlib.sha1(tree_shape_uid.encode('utf-8')).hexdigest()[:32]
+        tree_shape_uid = hashlib.sha1(tree_shape_uid.encode('utf-8')).hexdigest()[:31]
 
-        canopy_tree_msg.tree_uid = str(tree_shape_uid)
+        canopy_tree_msg.tree_uid = '#' + str(tree_shape_uid)
 
         status_change_log_msg.behavior_tree = canopy_tree_msg
 
