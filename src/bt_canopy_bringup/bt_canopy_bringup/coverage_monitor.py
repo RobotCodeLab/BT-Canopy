@@ -164,14 +164,14 @@ class CoverageMonitor(Node):
 
             # get the length of the longest node.instance_name
 
-            name_just = max([len(node.instance_name) for node in self.trees[tree_uid].values()])
+            name_just = max([len(node.instance_name) for node in self.trees[tree_uid].values()]) + 2
 
             print('\nTree uid :', tree_uid)
             print('Tree path:', self.trees_out_file[tree_uid])
 
             total_coverage = 0
 
-            print ('\n{:<{name_just}} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}'.format('Node','Type','Visits', 'Failures', 'Successes', 'Running', 'Idle', 'Coverage %', name_just=name_just))
+            print ('\n\t{:<{name_just}} {:<12} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}'.format('Node','Type','Visits', 'Failures', 'Successes', 'Running', 'Idle', 'Coverage %', name_just=name_just))
 
             for node in self.trees[tree_uid].values():
 
@@ -185,7 +185,7 @@ class CoverageMonitor(Node):
                     node_coverage += 0
                 total_coverage += node_coverage
 
-                print('\t{:<{name_just}} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}'.format(node.instance_name, node.type, node.num_visits, node.num_failures, node.num_successes, node.num_running, node.num_idle, node_coverage, name_just=name_just))
+                print('\t{:<{name_just}} {:<12} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}'.format(node.instance_name, node.type, node.num_visits, node.num_failures, node.num_successes, node.num_running, node.num_idle, node_coverage, name_just=name_just))
 
             total_coverage /= len(self.trees[tree_uid])
 
