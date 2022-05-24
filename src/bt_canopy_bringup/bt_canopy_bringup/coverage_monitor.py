@@ -138,14 +138,15 @@ class CoverageMonitor(Node):
         if tree_uid not in self.trees.keys():
             self.trees[tree_uid] = {}
 
-            print("Received new tree with {} nodes and UID: {}".format(len(msg.behavior_tree.nodes), tree_uid))
-
             for TreeNode in msg.behavior_tree.nodes:
                 self.trees[tree_uid][TreeNode.uid] \
                     = BTNode(TreeNode.uid, TreeNode.child_uids, node_type( TreeNode.type), TreeNode.instance_name, \
                         TreeNode.registration_name, TreeNode.params)
         
             self.trees_out_file[tree_uid] = self._format_out_file(tree_uid) 
+
+            print("Got new tree with {} nodes and UID: {}".format(len(msg.behavior_tree.nodes), tree_uid))
+            print("Logging behavior tree to file: {}\n".format(self.trees_out_file[tree_uid]))
 
         if msg.state_changes:
 
@@ -189,7 +190,7 @@ class CoverageMonitor(Node):
 
             total_coverage /= len(self.trees[tree_uid])
 
-            print('\n\tTotal coverage:', total_coverage, '%', '\n')
+            print('\n\tTotal coverage:', round (total_coverage, 4), '%', '\n')
 
 
 def main(args=None):
