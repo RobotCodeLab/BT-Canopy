@@ -166,8 +166,8 @@ class CoverageMonitor(Node):
 
             name_just = max([len(node.instance_name) for node in self.trees[tree_uid].values()]) + 2
 
-            print('\nTree uid :', tree_uid)
-            print('Tree path:', self.trees_out_file[tree_uid])
+            print('\nTree uid   :', tree_uid)
+            print('Out file   :', self.trees_out_file[tree_uid])
 
             total_coverage = 0
 
