@@ -145,8 +145,8 @@ class CoverageMonitor(Node):
         
             self.trees_out_file[tree_uid] = self._format_out_file(tree_uid) 
 
-            print("Got new tree with {} nodes and UID: {}".format(len(msg.behavior_tree.nodes), tree_uid))
-            print("Logging behavior tree to file: {}\n".format(self.trees_out_file[tree_uid]))
+            print("\nGot new tree with {} nodes and UID: {}".format(len(msg.behavior_tree.nodes), tree_uid))
+            print("Logging behavior tree to file: {}".format(self.trees_out_file[tree_uid]))
 
         if msg.state_changes:
 
