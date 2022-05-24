@@ -167,9 +167,11 @@ class CoverageMonitor(Node):
             name_just = max([len(node.instance_name) for node in self.trees[tree_uid].values()])
 
             print('\nTree uid :', tree_uid)
-            print('\nTree path:', self.trees_out_file[tree_uid])
+            print('Tree path:', self.trees_out_file[tree_uid])
 
             total_coverage = 0
+
+            print ('\n{:<{name_just}} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}'.format('Node','Type','Visits', 'Failures', 'Successes', 'Running', 'Idle', 'Coverage %'))
 
             for node in self.trees[tree_uid].values():
 
@@ -182,9 +184,8 @@ class CoverageMonitor(Node):
                 else:
                     node_coverage += 0
                 total_coverage += node_coverage
-                    
-                print('\t', str(node.instance_name).ljust(name_just), ':', str(node.num_visits).ljust(4), 'visits |', str(node.num_failures).ljust(4), 'failures |', \
-                    str(node.num_successes).ljust(4), 'successes |', str(node.num_running).ljust(4), 'running |', str(node.num_idle).ljust(4), 'idle |', str(node_coverage).ljust(3), '% coverage |')
+
+                print('\t{:<{name_just}} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}'.format(node.instance_name, node.type, node.num_visits, node.num_failures, node.num_successes, node.num_running, node.num_idle, node_coverage))
 
             total_coverage /= len(self.trees[tree_uid])
 
