@@ -138,6 +138,8 @@ class CoverageMonitor(Node):
         if tree_uid not in self.trees.keys():
             self.trees[tree_uid] = {}
 
+            print("Received new tree with {} nodes and UID: {}".format(len(msg.behavior_tree.nodes), tree_uid))
+
             for TreeNode in msg.behavior_tree.nodes:
                 self.trees[tree_uid][TreeNode.uid] \
                     = BTNode(TreeNode.uid, TreeNode.child_uids, node_type( TreeNode.type), TreeNode.instance_name, \
@@ -156,8 +158,6 @@ class CoverageMonitor(Node):
             self.write_tree_stats(tree_uid)
 
     def print_final_stats(self):
-
-        
 
         print('\nFinal stats:')
         for tree_uid in self.trees.keys():
