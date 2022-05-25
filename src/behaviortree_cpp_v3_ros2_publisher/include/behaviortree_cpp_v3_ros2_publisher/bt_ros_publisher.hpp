@@ -46,13 +46,18 @@ class BTRosPublisher : public BT::StatusChangeLogger
                         node_msg.type = node_msg.CONDITION;
                         break;
                     case BT::NodeType::CONTROL:
+                        node_msg.type = node_msg.CONTROL;
+                        break;
+                    case BT::NodeType::DECORATOR:
                         node_msg.type = node_msg.DECORATOR;
                         break;
                     case BT::NodeType::SUBTREE:
                         node_msg.type = node_msg.SUBTREE;
                         break;
                     default:
-                        break;
+                        RCLCPP_ERROR(node->get_logger(), "Unknown node type read from tree");
+                        node_msg.type = node_msg.UNDEFINED;
+                        break;   
                 }
 
 
