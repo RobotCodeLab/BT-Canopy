@@ -2,11 +2,12 @@
 
 IMAGE_NAME="$1"
 CONTAINER_NAME="btcanvas-container" # must be lowercase
+WS="nav2_ws"
 
 ROS_VERSION="galactic"
 
 SOURCE_ROS="source /opt/ros/$ROS_VERSION/setup.bash"
-SOURCE_TURTLEBOT="source /root/turtlebot3_ws/install/setup.bash"
+SOURCE_WS="source /root/$WS/install/setup.bash"
 SOURCE_GAZEBO="source /usr/share/gazebo/setup.sh"
 
 NETWORK_OPTIONS=""
@@ -65,9 +66,9 @@ fi
 
 echo "Executing commands in container $CONTAINER_NAME"
 
-exec_command_in_new_tab "$SOURCE_ROS && $SOURCE_TURTLEBOT && $SOURCE_GAZEBO && ros2 launch bt_canopy_bringup monitor.launch.py"
+exec_command_in_new_tab "$SOURCE_ROS && $SOURCE_WS && $SOURCE_GAZEBO && ros2 launch bt_canopy_bringup monitor.launch.py"
 
 sleep 2
 
-exec_command_in_new_tab "$SOURCE_ROS && $SOURCE_TURTLEBOT && $SOURCE_GAZEBO && cd ~/nav2_ws/build/nav2_system_tests/ && ctest -V"
+exec_command_in_new_tab "$SOURCE_ROS && $SOURCE_WS && $SOURCE_GAZEBO && cd /root/nav2_ws/build/nav2_system_tests/ && ctest -V"
 
