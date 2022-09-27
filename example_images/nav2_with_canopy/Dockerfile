@@ -2,18 +2,22 @@ FROM osrf/ros:galactic-desktop
 
 ENV ROS_DISTRO=galactic
 
-# Install Groot dependencies
+# Install Groot dependencies + turtlebot3 for nav2 sandbox
 RUN apt-get update &&\
     apt-get install -y qtbase5-dev \
     libqt5svg5-dev \
     libzmq3-dev \
-    libdw-dev
+    libdw-dev \ 
+    ros-$ROS_DISTRO-turtlebot3*
 
 WORKDIR /root/nav2_ws/src
 RUN git clone -b $ROS_DISTRO https://github.com/hodgespodge/navigation2.git
+# Uncomment the line below to disable gazebo client (The graphical interface) for test suite
+# RUN cd navigation2 && git reset --hard 4be5f56f705cb31cd7db207b251a7cc702465d4c
 RUN git clone https://github.com/hodgespodge/BT-Canopy.git
 RUN git clone https://github.com/BehaviorTree/Groot.git
 WORKDIR /root/nav2_ws
+
 
 
 RUN . /opt/ros/$ROS_DISTRO/setup.sh &&\

@@ -27,7 +27,7 @@ function exec_command_in_new_tab() {
 if [ $(docker ps | grep $CONTAINER_NAME | wc -l) -eq 0 ]; then
     echo "Container $CONTAINER_NAME is not yet running"
     
-    # check if image btwatcher exists
+    # check if image (with image name) exists
     if [ $(docker images | awk '{ print $1}' | grep $IMAGE_NAME | wc -l) -eq 0 ]; then
         echo "Image $IMAGE_NAME is not yet built"
         kill -INT $$
