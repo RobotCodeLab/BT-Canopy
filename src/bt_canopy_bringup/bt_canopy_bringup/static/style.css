@@ -1,0 +1,22 @@
+html, body {
+    margin: 0;
+    height: 100%;
+}
+
+#app {
+    height: 100%;
+}
+
+text {
+    font: 8pt;
+    fill: black;
+}
+
+line {
+    stroke: black;
+}
+
+circle {
+    stroke: black;
+    fill: black;
+}
