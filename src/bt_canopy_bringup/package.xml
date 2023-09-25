@@ -3,9 +3,10 @@
 <package format="3">
   <name>bt_canopy_bringup</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="samuelhodges3000@gmail.com">samuel</maintainer>
-  <license>TODO: License declaration</license>
+  <description>The Canopy logger that watches and save changes to behavior tree statuses.</description>
+  <maintainer email="entran@ncsu.edu">Ethan N Tran</maintainer>
+  <maintainer email="samuelhodges3000@gmail.com">Samuel Hodges</maintainer>
+  <license>MIT</license>
 
   <exec_depend>tree_msgs</exec_depend>
   <exec_depend>rclpy</exec_depend>

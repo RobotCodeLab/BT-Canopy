@@ -3,9 +3,10 @@
 <package format="3">
   <name>py_trees_ros_publisher</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="samuelhodges3000@gmail.com">samuel</maintainer>
-  <license>TODO: License declaration</license>
+  <description>A py_trees_ros logger for publishing behavior tree info to the ROS2 network.</description>
+  <maintainer email="entran@ncsu.edu">Ethan N Tran</maintainer>
+  <maintainer email="samuelhodges3000@gmail.com">Samuel Hodges</maintainer>
+  <license>MIT</license>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
