@@ -19,11 +19,30 @@ from tree_msgs.msg import TreeNode
 import hashlib
 
 class Stream():
+    """Stream to connect to behavior trees from py_trees_ros.
+    
+    Attributes:
+        service_types: Map containing the service types for open_service and close_service.
+        node: The associated ROS node.
+        most_recent_time: The time of the most recent message.
+        open_service_name: The service object name for opening the snapshot.
+        open_service: The service object for opening the snapshot.
+        close_service_name: The service object name for closing the snapshot.
+        close_service: The service object for closing the snapshot.
+        stream_topic_name: The name of the stream topic to listen on.
+        publish_period: How often to republish messages.
+        subscriber: The subscriber object to listen to changes.
+        node_callback: The callback function for republishing.
+    """
 
-    def __init__(self, node : rclpy.node.Node, open_service_name, close_service_name) -> None:        
+    def __init__(self, node: rclpy.node.Node, open_service_name, close_service_name) -> None:        
+        """Create the stream instance.
         
-        # print("Stream: initialising with open_service_name: {} and close_service_name: {}".format(open_service_name, close_service_name))
-
+        Args:
+            node: The ROS node instance.
+            open_service_name: The open snapshot service name.
+            close_service_name: The close snapshot service name.
+        """ 
         self.service_types = {
             'open': py_trees_srvs.OpenSnapshotStream,
             'close': py_trees_srvs.CloseSnapshotStream
@@ -54,11 +73,23 @@ class Stream():
         self.node_callback = None
 
     def stream_callback(self, msg):
+        """The callback function that calls the corresponding republisher method.
+        
+        Args:
+            msg: The behavior tree changes.
+        """
         self.most_recent_time = self.node.get_clock().now()
-        self.node_callback(msg, self.stream_topic_name )
+        self.node_callback(msg, self.stream_topic_name)
 
     def open_stream(self, callback):
+        """Opens a new stream to monitor the behavior tree with.
 
+        Args:
+            callback: The callback function to republish the tree with. 
+
+        Returns:
+            The name of the topic the stream is associated with.
+        """
         self.node_callback = callback
 
         request = self.service_types['open'].Request()
@@ -83,7 +114,7 @@ class Stream():
         return self.stream_topic_name
 
     def close_stream(self):
-
+        """Remove resources for the stream when done."""
         self.open_service.destroy()
 
         request = self.service_types['close'].Request()
@@ -96,8 +127,19 @@ class Stream():
         self.close_service.destroy()
 
 class TopicPublisher(Node):
+    """The ROS publisher node that sends out behavior tree changes.
+
+    Attributes:
+        publisher: The ROS publisher object.
+        open_service_names: Set of open snapshot services for py_trees_ros.
+        close_service_names: Set of close snapshot services for py_trees_ros.
+        clock: The ROS clock instance.
+        previous_status: Map of previous statuses for behavior trees.
+        streams: Map of stream objects.
+    """
 
     def __init__(self):
+        """Creates the ROS node."""
         super().__init__('py_trees_ros2_publisher')
 
         self.publisher = self.create_publisher(StatusChangeLog, 'bt_status_change_log', 10)
@@ -112,12 +154,24 @@ class TopicPublisher(Node):
         self.streams = {} # {stream_topic_name: Stream()}
 
     def uuid_to_int32(self, uuid):
-        # concatenate the 16 bytes into a single integer
+        """Concatenate the 16 bytes into a single integer.
+
+        Args:
+            uuid: The unique id in bytes.
+        
+        Returns:
+            The unique id as an integer.
+        """
         return int.from_bytes(list(uuid)[:4], byteorder='big')
 
     # called by the stream object
     def republisher_callback(self, msg : py_trees_msgs.BehaviourTree, stream_topic_name):
+        """Called by the stream object to republish the behavior changes to Canopy.
 
+        Args:
+            msg: The behavior tree change message.
+            stream_topic_name: The source of the message.
+        """
         if not msg.changed:
             return
 
@@ -134,7 +188,7 @@ class TopicPublisher(Node):
 
             tree_node = TreeNode()
 
-            # hash the list of 16 bytes to get a unique id
+            # Hash the list of 16 bytes to get a unique id.
             tree_node.uid = self.uuid_to_int32(behavior.own_id.uuid)
 
             if behavior.is_active:
@@ -144,21 +198,21 @@ class TopicPublisher(Node):
                 status_change_msg.status.value = behavior.status - 1
                 status_change_msg.timestamp = msg.statistics.stamp
 
-                # add the current status to the previous status
+                # Add the current status to the previous status.
                 self.previous_status[stream_topic_name][tree_node.uid] = status_change_msg.status
 
                 status_change_log_msg.state_changes.append(status_change_msg)
 
-            # set root node if no parents
+            # Set root node if no parents.
             if not root_uid_set and list(behavior.parent_id.uuid) == [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]:
                 canopy_tree_msg.root_uid = tree_node.uid
                 root_uid_set = True
 
-            # set child_uids
+            # Set child_uids.
             for child_id in behavior.child_ids:
                 tree_node.child_uids.append(self.uuid_to_int32(child_id.uuid))
 
-            # convert py_trees_type to btcpp type
+            # Convert py_trees_type to btcpp type.
             if behavior.type == 0:
                 tree_node.type = tree_node.UNDEFINED
             elif behavior.type == 1:
@@ -173,7 +227,7 @@ class TopicPublisher(Node):
 
             canopy_tree_msg.nodes.append(tree_node)
 
-            # append for tree_uid
+            # Append for tree_uid.
             tree_shape_uid += str(tree_node.uid)
             tree_shape_uid += str(tree_node.instance_name)
             tree_shape_uid += "-"
@@ -187,7 +241,7 @@ class TopicPublisher(Node):
         self.publisher.publish(status_change_log_msg)
 
     def tree_discovery(self):
-
+        """Discovers new behavior trees."""
         streams_to_delete = []
         for stream in self.streams.values():
             if self.get_clock().now() - stream.most_recent_time  > rclpy.duration.Duration(seconds=stream.publish_period,nanoseconds= int(0.2 * 1e9)):
@@ -235,24 +289,25 @@ class TopicPublisher(Node):
             
         elif new_open_service_name or new_close_service_name:
             raise Exception("Missing open or close service for snapshot stream")
-
                 
     def shutdown(self):
+        """Cleanup on program exit."""
         for stream in self.streams.values():
             stream.close_stream(self)
             
 def main(args=None):
-    rclpy.init(args=args)
+    """The main method that starts the node and runs forever.
 
+    Args:
+        args (optional): Arguments to pass to rclpy initialization.
+    """
+    rclpy.init(args=args)
     republisher = TopicPublisher()
 
     try: 
-
-
         while rclpy.ok():
             rclpy.spin_once(republisher, timeout_sec=1) # timeout is how often to run tree_discovery (also handles removing deleted trees)
             republisher.tree_discovery()
-
     except KeyboardInterrupt:
         pass
     except BaseException:
@@ -261,6 +316,7 @@ def main(args=None):
         republisher.shutdown()
         republisher.destroy_node()
         rclpy.shutdown()
+
 
 if __name__ == '__main__':
     main()

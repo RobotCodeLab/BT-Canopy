@@ -14,10 +14,10 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='samuel',
-    maintainer_email='samuelhodges3000@gmail.com',
-    description='This package provides a ROS node that subscribes to the bt_status_change_log topic and saves the data to a csv file.',
-    license='TODO: License declaration',
+    maintainer='Ethan N Tran, Samuel Hodges',
+    maintainer_email='entran@ncsu.edu, samuelhodges3000@gmail.com',
+    description='The Canopy logger that watches and save changes to behavior tree statuses.',
+    license='MIT',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [

@@ -14,9 +14,9 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='samuel',
-    maintainer_email='samuelhodges3000@gmail.com',
-    description='This package provides a ROS node that republishes py_trees_ros tree information.',
+    maintainer='Ethan N Tran, Samuel Hodges',
+    maintainer_email='entran@ncsu.edu, samuelhodges3000@gmail.com',
+    description='A py_trees_ros logger for publishing behavior tree info to the ROS2 network.',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
