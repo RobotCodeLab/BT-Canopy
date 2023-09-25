@@ -55,7 +55,7 @@ Note: Groot monitoring won't connect until after you set the initial pose estima
 For our Nav2 case study, we ran the Nav2 test suite 10 times with Canopy logging. To launch a container and automatically start the test suite with Canopy logging, you can use the included `start_container_and_run_tests.sh` script. This script utilizes rocker.
 
 ```bash
-bash start_container_and_run_tests.sh nav2_with_canopy
+bash run_tests_with_coverage.sh nav2_with_canopy
 ```
 
 Note: For our case study, we manually saved Canopy's csv files to our host machine using `docker cp`. The entire test suite runs in approximately 20 minutes.
