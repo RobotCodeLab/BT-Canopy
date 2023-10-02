@@ -18,10 +18,10 @@ RUN git clone https://github.com/RobotCodeLab/BT-Canopy.git
 RUN git clone https://github.com/BehaviorTree/Groot.git
 WORKDIR /root/nav2_ws
 
-RUN . /opt/ros/$ROS_DISTRO/setup.sh &&\
-    apt-get update &&\
-    rosdep install -y -r -q --from-paths src --ignore-src --rosdistro $ROS_DISTRO &&\
-    colcon build --symlink-install
+RUN . /opt/ros/$ROS_DISTRO/setup.sh && \
+    apt-get update && \
+    rosdep install -y -r -q --from-paths src --ignore-src --rosdistro $ROS_DISTRO && \
+    colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="--coverage" -DCMAKE_CXX_OUTPUT_EXTENSION_REPLACE=ON
 
 # Dist-upgrade is recommended for ROS dockers. See https://github.com/ros2/rosidl/issues/680
 RUN apt-get update && \
