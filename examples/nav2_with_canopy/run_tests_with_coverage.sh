@@ -19,7 +19,7 @@ fi
 
 function exec_docker() {
     echo "Executing command in Docker container: $1"
-    tmux new-session 'bash -c "docker exec $CONTAINER_NAME bash -c '$1'; bash"'
+    tmux new-session -d 'bash -c "docker exec $CONTAINER_NAME bash -c '$1'; bash"'
 }
 
 # Check if the Docker container is running using docker ps.
@@ -33,8 +33,8 @@ if [ $(docker ps | grep $CONTAINER_NAME | wc -l) -eq 0 ]; then
     fi
 
     # Check if rocker is installed.
-    if [ $(which rocker) -eq 0]; then
-        echo "Rocker not installed- Install rocker @ https://github.com/osrf/rocker"
+    if [ $(which rocker) -eq 0 ]; then
+        echo "Rocker not installed - Install rocker @ https://github.com/osrf/rocker"
         kill -INT $$
     fi
 
@@ -43,12 +43,12 @@ if [ $(docker ps | grep $CONTAINER_NAME | wc -l) -eq 0 ]; then
         echo "Nvidia card not available or nvidia-smi is not installed"
         echo "Starting rocker container using integrated graphics"
         echo "rocker --x11 --devices /dev/dri/card0 $NETWORK_OPTIONS --name $CONTAINER_NAME $IMAGE_NAME"
-        tmux new-session 'rocker --x11 --devices /dev/dri/card0 $NETWORK_OPTIONS --name $CONTAINER_NAME $IMAGE_NAME'
+        tmux new-session -d "rocker --x11 --devices /dev/dri/card0 $NETWORK_OPTIONS --name $CONTAINER_NAME $IMAGE_NAME"
     else
         echo "Nvidia card available"
         echo "Starting rocker container with nvidia card"
         echo "rocker --x11 --nvidia $NETWORK_OPTIONS --name $CONTAINER_NAME $IMAGE_NAME"
-        tmux new-session 'rocker --x11 --nvidia $NETWORK_OPTIONS --name $CONTAINER_NAME $IMAGE_NAME'
+        tmux new-session -d "rocker --x11 --nvidia $NETWORK_OPTIONS --name $CONTAINER_NAME $IMAGE_NAME"
     fi
 
     # Loop until container with name $CONTAINER_NAME is running.
