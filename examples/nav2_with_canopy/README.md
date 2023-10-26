@@ -58,7 +58,7 @@ For our Nav2 case study, we ran the Nav2 test suite 10 times with Canopy logging
 bash run_tests_with_coverage.sh nav2_with_canopy
 ```
 
-Note: The entire test suite runs in approximately 20 minutes.
+Note: The entire test suite runs in approximately less than 30 minutes.
 
 ## Copying Output Files
 
@@ -69,3 +69,4 @@ docker cp btcanvas-container:/root/nav2_ws/canopy_navigate_through_poses_w_repla
 docker cp btcanvas-container:/root/nav2_ws/canopy_navigate_to_poses_w_replanning_and_recovery.csv ./
 docker cp btcanvas-container:/root/nav2_ws/canopy_navigate_to_pose_w_replanning_and_recovery.csv ./
 ```
+

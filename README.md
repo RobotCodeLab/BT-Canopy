@@ -4,6 +4,10 @@ Canopy is a tool for running code coverage on behavior trees in ROS2.
 
 For a BT library to work with Canopy, that library must be able to publish its behavior tree state information in the format provided in the [tree_msgs package](src/tree_msgs). Out of the box, Canopy supports [BehaviorTree.cpp](https://github.com/BehaviorTree/BehaviorTree.CPP) (specifically v3) and [py_trees_ros](https://github.com/splintered-reality/py_trees_ros) as detailed below.
 
+## Nav2 Case Study
+
+The instructions/case study results for instrumenting Nav2 using Canopy can be found in <examples/nav2_with_canopy> and the corresponding [README.md](examples/nav2_with_canopy/README.md).
+
 ## Instrumenting Logging
 
 Canopy requires no extra instrumentation if the behavior tree being monitored is implemented using `py_trees_ros`. However, if the behavior tree being monitored is implemented using `BehaviorTree.CPP`, some modifications to the code being monitored. This includes adding a logger that publishes to a ROS topic. A basic implementation of this can be found in [behaviortree\_cpp\_v3\_ros2\_publisher](src/behaviortree_cpp_v3_ros2_publisher/).
