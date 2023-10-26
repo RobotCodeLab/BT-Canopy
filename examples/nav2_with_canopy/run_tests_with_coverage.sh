@@ -63,5 +63,5 @@ fi
 echo "Executing Nav2 with Canopy logging in container $CONTAINER_NAME"
 exec_docker "$SOURCE_ROS && $SOURCE_WS && $SOURCE_GAZEBO && ros2 launch bt_canopy_bringup monitor.launch.py"
 sleep 2
-exec_docker "$SOURCE_ROS && $SOURCE_WS && $SOURCE_GAZEBO && cd /root/nav2_ws/build/nav2_system_tests/ && ctest -V; lcov --capture --rc lcov_branch_coverage=1 --directory ../ --output-file lcov_report.info"
+exec_docker "$SOURCE_ROS && $SOURCE_WS && $SOURCE_GAZEBO && cd /root/nav2_ws/build/nav2_system_tests/ && ctest -V; cd /root/nav2_ws && lcov --capture --rc lcov_branch_coverage=1 --directory build/ --output-file canopy_lcov_report.info && genhtml --branch-coverage canopy_lcov_report.info -o coverage"
 
