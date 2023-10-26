@@ -6,7 +6,7 @@ For a BT library to work with Canopy, that library must be able to publish its b
 
 ## Nav2 Case Study
 
-The instructions/case study results for instrumenting Nav2 using Canopy can be found in <examples/nav2_with_canopy> and the corresponding [README.md](examples/nav2_with_canopy/README.md).
+The instructions/case study results for instrumenting Nav2 using Canopy can be found in [examples/nav2_with_canopy](examples/nav2_with_canopy) and the corresponding [README.md](examples/nav2_with_canopy/README.md).
 
 ## Instrumenting Logging
 
