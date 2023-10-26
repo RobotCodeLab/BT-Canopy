@@ -1,6 +1,6 @@
 # Nav2 with Canopy Example
 
-This Dockerfile starts with a base ROS2 Iron image and then clones and builds a [slightly modified version of Navigation2](https://github.com/RobotCodeLab/navigation2/tree/galactic), [BT-Canopy](https://github.com/RobotCodeLab/BT-Canopy), and [Groot](https://github.com/BehaviorTree/Groot).
+This Dockerfile starts with a base ROS2 Iron image and then clones and builds a [slightly modified version of Navigation2](https://github.com/RobotCodeLab/navigation2/tree/iron), [BT-Canopy](https://github.com/RobotCodeLab/BT-Canopy), and [Groot](https://github.com/BehaviorTree/Groot).
 
 ## Building the Docker Image
 
